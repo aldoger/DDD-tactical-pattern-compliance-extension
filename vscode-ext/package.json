@@ -1,0 +1,24 @@
+{
+    "name": "wrap-selection-try-catch",
+    "version": "0.0.1",
+    "scripts": {
+        "compile": "npx tsc -p ./"
+    },
+    "main": "./out/extension.js",
+    "engines": {
+        "vscode": "^1.107.0"
+    },
+    "contributes": {
+        "commands": [
+            {
+                "command": "wrapSelection.tryCatch",
+                "title": "Wrap Selection in Try/Catch"
+            }
+        ]
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.107.0",
+        "@types/node": "16.x",
+        "typescript": "^4.9.4"
+    }
+}
