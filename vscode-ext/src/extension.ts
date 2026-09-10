@@ -1,71 +1,93 @@
 import * as vscode from 'vscode';
 
-export function activate(context: vscode.ExtensionContext) {
-    const disposable = vscode.commands.registerCommand("wrapSelection.tryCatch", async () => {
-        const editor = vscode.window.activeTextEditor;
-
-        if(!editor) {
-            vscode.window.showWarningMessage("No active editor found");
-            return;
-        }
-
-        const selection = editor.selection;
-        const selectedText = editor.document.getText(selection);
-
-        if(!selectedText || selectedText.trim().length === 0) {
-            vscode.window.showWarningMessage("No text selected");
-            return;
-        }
-
-        const document = editor.document;
-        const startLine = document.lineAt(selection.start);
-        const indentMatch = startLine.text.match("/^(\s*)/");
-        const baseIndent = indentMatch ? indentMatch[1] : '';
-
-        const lines = selectedText.split('\n');
-
-        let minIndent = Number.MAX_SAFE_INTEGER;
-        const nonEmptyLines = lines.filter(line => line.trim().length > 0);
-        nonEmptyLines.forEach(line => {
-            const indentMatch = line.match("/^(\s*)/");
-            if(indentMatch) {
-                minIndent = Math.min(minIndent, indentMatch[1].length);
-            }
-        })
-
-        const normalizedLine = lines.map(line => {
-            if(line.trim().length === 0) {
-                return line;
-            }
-            const indentMatch = line.match("/^(\s*)/");
-            if (indentMatch && indentMatch[1].length >= minIndent) {
-                return line.substring(minIndent);
-            }
-            return line;
-        });
-
-        const indentendLines = normalizedLine.map(line => {
-            if (line.trim().length === 0) {
-                return line;
-            }
-            return baseIndent + '   ' + line;
-        });
-
-        const wrappedCode = 
-            baseIndent + 'try {\n' + 
-            indentendLines.join('\n') + '\n' + 
-            baseIndent + '} catch (error) {\n' + 
-            baseIndent + ' console.error(error);\n' + 
-            baseIndent + '}';
-
-        const success = await editor.edit(editBuilder => {
-            editBuilder.replace(selection, wrappedCode);
-        });
-
-        if(!success) {
-            vscode.window.showErrorMessage('Failed to wrap selection in editor');
-        }
+export async function selectDirectory(): Promise<vscode.Uri | undefined> {
+    const folderUri = await vscode.window.showOpenDialog({
+        canSelectFiles: false,
+        canSelectFolders: true,
+        canSelectMany: false,
+        openLabel: 'Select Folder',
+        title: 'Select a Folder',
     });
+
+    return folderUri?.[0];
+}
+
+export async function getProgramFiles(
+    dir: vscode.Uri
+): Promise<vscode.Uri[]> {
+    const programFiles: vscode.Uri[] = [];
+
+    async function readDirRecursive(currentDir: vscode.Uri): Promise<void> {
+        const entries = await vscode.workspace.fs.readDirectory(currentDir);
+
+        for (const [name, type] of entries) {
+            const fileUri = vscode.Uri.joinPath(currentDir, name);
+
+            if (type === vscode.FileType.Directory) {
+                await readDirRecursive(fileUri);
+            } else if (
+                type === vscode.FileType.File &&
+                name.endsWith('.cs')
+            ) {
+                programFiles.push(fileUri);
+            }
+        }
+    }
+
+    await readDirRecursive(dir);
+
+    return programFiles;
+}
+
+export function showFilesPanel(files: vscode.Uri[]): void {
+    const panel = vscode.window.createWebviewPanel(
+        'csharpFiles',
+        'C# Files',
+        vscode.ViewColumn.One,
+        {}
+    );
+
+    const fileList = files
+        .map(file => `<li>${file.fsPath}</li>`)
+        .join('');
+
+    panel.webview.html = `
+        <!DOCTYPE html>
+        <html>
+        <body>
+            <h1>C# Files</h1>
+            <p>${files.length} files found</p>
+
+            <ul>
+                ${fileList || '<li>No C# files found</li>'}
+            </ul>
+        </body>
+        </html>
+    `;
+}
+
+export function activate(context: vscode.ExtensionContext) {
+    const disposable = vscode.commands.registerCommand(
+        'ddd-tactical-pattern-compliance.checkCompliance',
+        async () => {
+            const dir = await selectDirectory();
+
+            if (!dir) {
+                return;
+            }
+
+            try {
+                const files = await getProgramFiles(dir);
+
+                showFilesPanel(files);
+            } catch (error) {
+                vscode.window.showErrorMessage(
+                    `Failed to scan directory: ${error}`
+                );
+            }
+        }
+    );
 
     context.subscriptions.push(disposable);
 }
+
