@@ -18,8 +18,7 @@ namespace GettingStartedCS
     {
         static async Task Main(string[] args)
         {
-            SyntaxTree tree = CSharpSyntaxTree.ParseText(
-                @"using System;
+            string input = @"using System;
                 using System.Collections;
                 using System.Linq;
                 using System.Text;
@@ -36,14 +35,20 @@ namespace GettingStartedCS
                             return $""Hello, my name is {Name} and I am {Age} years old."";
                         }
                     }
-                }");
+                }";
 
-            var root = (CompilationUnitSyntax)tree.GetRoot();
-            var nameSpace = (NamespaceDeclarationSyntax)root.Members[0];
-            var classProgram = (ClassDeclarationSyntax)nameSpace.Members[0];
-            string className = classProgram.Identifier.Text;
-            var classMembers = classProgram.Members[1];
+            // SyntaxTree tree = CSharpSyntaxTree.ParseText(input);
+
+
+            var parser = new parser.Parser();
+            parser.Parse(input);
+            var classes = parser.GetClasses();
+            foreach (var c in classes) 
+            { 
+                Console.WriteLine($"Class: {c.Identifier.ValueText}"); Console.WriteLine(c.ToString());
+            }
         }
+        
 
         
 
