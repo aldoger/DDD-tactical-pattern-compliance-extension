@@ -1,4 +1,5 @@
-﻿using Microsoft.Build.Locator;
+﻿using GettingStartedCS.main.ClassStructureInfo;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -27,8 +28,15 @@ namespace GettingStartedCS
                 {
                     class Human
                     {
+                        public string Id { get; set; }
                         public string Name { get; set; }
                         public int Age { get; set; }
+
+                        public Human(string name, int age)
+                        {
+                            Name = name;
+                            Age = age;
+                        }
                         
                         public string Introduce()
                         {
@@ -43,10 +51,23 @@ namespace GettingStartedCS
             var parser = new parser.Parser();
             parser.Parse(input);
             var classes = parser.GetClasses();
-            foreach (var c in classes) 
-            { 
-                Console.WriteLine($"Class: {c.Identifier.ValueText}"); Console.WriteLine(c.ToString());
-            }
+            foreach (var classDeclaration in classes)
+            {
+                var classInfo = new ClassStructureInfo(classDeclaration.Identifier.Text);
+                Console.WriteLine($"Class: {classDeclaration.Identifier.Text}");
+                var methods = parser.GetMethods(classDeclaration);
+                foreach (var method in methods)
+                {
+                    var classMethodInfo = new MethodStructureInfo(method.Identifier.Text);
+                    classInfo.AddMethod(classMethodInfo);
+                }
+                var properties = parser.GetProperties(classDeclaration);
+                foreach (var property in properties)
+                {
+                    var classPropertyInfo = new PropertyStructureInfo(property.Identifier.Text);
+                    classInfo.AddProperty(classPropertyInfo);
+                }
+            } 
         }
         
 

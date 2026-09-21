@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GettingStartedCS.main
+namespace GettingStartedCS.main.CodeValidation
 {
-    public abstract class DomainObjectValidate
+    public class DomainModelIdentifier
     {
-        public abstract void Validate();
     }
 }
