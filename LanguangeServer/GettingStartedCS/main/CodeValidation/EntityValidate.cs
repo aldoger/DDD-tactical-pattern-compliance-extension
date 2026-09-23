@@ -10,14 +10,16 @@ namespace GettingStartedCS.main.CodeValidation
 
     public class EntityValidate : DomainObjectValidate
     {
-        public override void Validate(ClassStructureInfo entity)
+        public override bool Validate(ClassStructureInfo entity)
         {
-            throw new NotImplementedException();
+            return ValidateEntity(entity);
         }
 
-        public void ValidateEntity(ClassStructureInfo entity)
+        public bool ValidateEntity(ClassStructureInfo entity)
         {
-            var classProperties = entity.Properties;
+            bool hasIdProperty = entity.Properties.Any(p =>
+                string.Equals(p.PropertyName, "Id", StringComparison.OrdinalIgnoreCase));
+            return hasIdProperty;
         }
     }
 }

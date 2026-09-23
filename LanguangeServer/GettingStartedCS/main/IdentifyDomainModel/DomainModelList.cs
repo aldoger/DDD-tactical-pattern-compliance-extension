@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GettingStartedCS.main.CodeValidation
+namespace GettingStartedCS.main.IdentifyDomainModel
 {
     using GettingStartedCS.main.ClassStructureInfo;
     public class DomainModelList

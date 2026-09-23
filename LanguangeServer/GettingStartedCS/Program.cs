@@ -1,4 +1,5 @@
 ﻿using GettingStartedCS.main.ClassStructureInfo;
+using GettingStartedCS.main.IdentifyDomainModel;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -47,10 +48,12 @@ namespace GettingStartedCS
 
             // SyntaxTree tree = CSharpSyntaxTree.ParseText(input);
 
-
+            DomainModelList domainModelList = new DomainModelList();
+            DomainModelIdentifier domainModelIdentifier = new DomainModelIdentifier();
             var parser = new parser.Parser();
             parser.Parse(input);
             var classes = parser.GetClasses();
+
             foreach (var classDeclaration in classes)
             {
                 var classInfo = new ClassStructureInfo(classDeclaration.Identifier.Text);
@@ -67,7 +70,28 @@ namespace GettingStartedCS
                     var classPropertyInfo = new PropertyStructureInfo(property.Identifier.Text);
                     classInfo.AddProperty(classPropertyInfo);
                 }
-            } 
+                domainModelIdentifier.IdentifyDomainModels(classDeclaration, classInfo, domainModelList);
+            }
+
+            foreach(var domainModel in domainModelList.DomainModels)
+            {
+                switch(domainModel.DomainType)
+                {
+                    case "Entity":
+                        Console.WriteLine($"Entity: {domainModel.ClassName}");
+                        break;
+                    case "Value Object":
+                        Console.WriteLine($"Value Object: {domainModel.ClassName}");
+                        break;
+                    case "Aggregate Root":
+                        Console.WriteLine($"Aggregate Root: {domainModel.ClassName}");
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown Domain Type: {domainModel.ClassName}");
+                        break;
+                }
+            }
+
         }
         
 

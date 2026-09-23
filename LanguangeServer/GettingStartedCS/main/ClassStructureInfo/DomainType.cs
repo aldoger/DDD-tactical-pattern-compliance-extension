@@ -16,7 +16,6 @@ namespace GettingStartedCS.main.ClassStructureInfo
             { "REPOSITORY", "Repository" },
             { "DOMAIN_SERVICE", "Domain Service" },
             { "DOMAIN_EVENT", "Domain Event" },
-            { "DOMAIN_EVENT", "Domain Event" },
             { "FACTORY", "Factory" }
         };
 
@@ -29,7 +28,7 @@ namespace GettingStartedCS.main.ClassStructureInfo
             return Domains.ContainsKey(domain);
         }
 
-        public string GetDomainDescription(string domain)
+        public string GetDomainType(string domain)
         {
             if (IsValidDomain(domain))
             {
