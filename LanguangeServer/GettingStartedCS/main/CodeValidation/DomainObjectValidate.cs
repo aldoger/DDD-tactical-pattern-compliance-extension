@@ -9,6 +9,6 @@ namespace GettingStartedCS.main.CodeValidation
     using GettingStartedCS.main.ClassStructureInfo;
     public abstract class DomainObjectValidate
     {
-        public abstract bool Validate(ClassStructureInfo classInfo);
+        public abstract void Validate(ClassStructureInfo classInfo, ViolationList vlist);
     }
 }

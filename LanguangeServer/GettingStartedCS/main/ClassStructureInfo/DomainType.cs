@@ -1,42 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GettingStartedCS.main.ClassStructureInfo
 {
-    public class DomainType
+    public enum DomainType
     {
-        public Dictionary<string, string> Domains { get; } = new Dictionary<string, string>
-        {
-            { "ENTITY", "Entity" },
-            { "VALUE_OBJECT", "Value Object" },
-            { "AGGREGATE", "Aggregate" },
-            { "REPOSITORY", "Repository" },
-            { "DOMAIN_SERVICE", "Domain Service" },
-            { "DOMAIN_EVENT", "Domain Event" },
-            { "FACTORY", "Factory" }
-        };
+        ENTITY,
+        VALUE_OBJECT,
+        AGGREGATE,
+        REPOSITORY,
+        DOMAIN_SERVICE,
+        DOMAIN_EVENT,
+        FACTORY
+    }
 
-        public DomainType()
+    public static class DomainTypeExtensions
+    {
+        public static string GetDisplayName(this DomainType domainType)
         {
-        }
-
-        public bool IsValidDomain(string domain)
-        {
-            return Domains.ContainsKey(domain);
-        }
-
-        public string GetDomainType(string domain)
-        {
-            if (IsValidDomain(domain))
+            switch (domainType)
             {
-                return Domains[domain];
-            }
-            else
-            {
-                throw new ArgumentException($"Invalid domain: {domain}");
+                case DomainType.ENTITY:
+                    return "Entity";
+
+                case DomainType.VALUE_OBJECT:
+                    return "Value Object";
+
+                case DomainType.AGGREGATE:
+                    return "Aggregate";
+
+                case DomainType.REPOSITORY:
+                    return "Repository";
+
+                case DomainType.DOMAIN_SERVICE:
+                    return "Domain Service";
+
+                case DomainType.DOMAIN_EVENT:
+                    return "Domain Event";
+
+                case DomainType.FACTORY:
+                    return "Factory";
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(domainType));
             }
         }
     }

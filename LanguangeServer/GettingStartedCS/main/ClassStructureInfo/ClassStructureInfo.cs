@@ -36,18 +36,10 @@ namespace GettingStartedCS.main.ClassStructureInfo
     public class ClassStructureInfo
     {
         public string ClassName;
-        private string _domainType;
+        public DomainType DomainType;
         public List<PropertyStructureInfo> Properties;
         public List<MethodStructureInfo> Methods;
 
-        public string DomainType
-        {
-            get { return _domainType; }
-            set
-            {
-                this._domainType = value;
-            }
-        }
 
         public void AddProperty(PropertyStructureInfo property)
         {

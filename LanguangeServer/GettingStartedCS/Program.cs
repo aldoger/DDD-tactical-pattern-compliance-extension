@@ -1,17 +1,10 @@
 ﻿using GettingStartedCS.main.ClassStructureInfo;
+using GettingStartedCS.main.CodeValidation;
 using GettingStartedCS.main.IdentifyDomainModel;
 using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.Text;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GettingStartedCS
@@ -20,13 +13,7 @@ namespace GettingStartedCS
     {
         static async Task Main(string[] args)
         {
-            string input = @"using System;
-                using System.Collections;
-                using System.Linq;
-                using System.Text;
- 
-                namespace Person
-                {
+            string input = @"
                     class Human
                     {
                         public string Id { get; set; }
@@ -38,18 +25,16 @@ namespace GettingStartedCS
                             Name = name;
                             Age = age;
                         }
-                        
+
                         public string Introduce()
                         {
                             return $""Hello, my name is {Name} and I am {Age} years old."";
                         }
-                    }
-                }";
+                    }";
 
             // SyntaxTree tree = CSharpSyntaxTree.ParseText(input);
 
             DomainModelList domainModelList = new DomainModelList();
-            DomainModelIdentifier domainModelIdentifier = new DomainModelIdentifier();
             var parser = new parser.Parser();
             parser.Parse(input);
             var classes = parser.GetClasses();
@@ -57,7 +42,6 @@ namespace GettingStartedCS
             foreach (var classDeclaration in classes)
             {
                 var classInfo = new ClassStructureInfo(classDeclaration.Identifier.Text);
-                Console.WriteLine($"Class: {classDeclaration.Identifier.Text}");
                 var methods = parser.GetMethods(classDeclaration);
                 foreach (var method in methods)
                 {
@@ -70,21 +54,19 @@ namespace GettingStartedCS
                     var classPropertyInfo = new PropertyStructureInfo(property.Identifier.Text);
                     classInfo.AddProperty(classPropertyInfo);
                 }
-                domainModelIdentifier.IdentifyDomainModels(classDeclaration, classInfo, domainModelList);
+                DomainModelIdentifier.IdentifyDomainModels(classDeclaration, classInfo, domainModelList);
             }
+
+            ViolationList violationList = new ViolationList();
 
             foreach(var domainModel in domainModelList.DomainModels)
             {
                 switch(domainModel.DomainType)
                 {
-                    case "Entity":
+                    case DomainType.ENTITY:
                         Console.WriteLine($"Entity: {domainModel.ClassName}");
-                        break;
-                    case "Value Object":
-                        Console.WriteLine($"Value Object: {domainModel.ClassName}");
-                        break;
-                    case "Aggregate Root":
-                        Console.WriteLine($"Aggregate Root: {domainModel.ClassName}");
+                        DomainObjectValidate validator = ValidatorFactory.GetValidator(DomainType.ENTITY);
+                        validator.Validate(domainModel, violationList);
                         break;
                     default:
                         Console.WriteLine($"Unknown Domain Type: {domainModel.ClassName}");
@@ -92,6 +74,10 @@ namespace GettingStartedCS
                 }
             }
 
+            foreach(var violation in violationList.Violations)
+            {
+                Console.WriteLine($"Violation Code: {violation.Constraint}, Message: {violation.Message}");
+            }
         }
         
 
