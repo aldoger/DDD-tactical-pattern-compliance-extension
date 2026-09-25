@@ -8,13 +8,19 @@ namespace GettingStartedCS.main.CodeValidation
 {
     public class Violation
     {
-        public Violation(Constraint constraint, string message)
+        public string className;
+        public Constraint Constraint { get; }
+        public string Message { get; }
+        public Violation(
+            string className,
+            Constraint constraint, 
+            string message
+        )
         {
+            this.className = className;
             Constraint = constraint;
             Message = message;
         }
-        public Constraint Constraint { get; }
-        public string Message { get; }
     }
 
     public class ViolationList

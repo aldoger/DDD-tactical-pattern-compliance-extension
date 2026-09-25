@@ -17,6 +17,7 @@ namespace GettingStartedCS.main.CodeValidation
             {
                 vlist.AddViolation(
                     new Violation(
+                        entity.ClassName,
                         Constraint.CONSTRAINT_C1,
                         ConstraintExtensions.GetDescription(Constraint.CONSTRAINT_C1)
                     )
@@ -27,6 +28,7 @@ namespace GettingStartedCS.main.CodeValidation
             {
                 vlist.AddViolation(
                     new Violation(
+                        entity.ClassName,
                         Constraint.CONSTRAINT_C2,
                         ConstraintExtensions.GetDescription(Constraint.CONSTRAINT_C2)
                     )

@@ -112,7 +112,10 @@ namespace GettingStartedCS
 
             foreach(var violation in violationList.Violations)
             {
-                Console.WriteLine($"Violation Code: {violation.Constraint}, Message: {violation.Message}");
+                Console.WriteLine($"" +
+                    $"Class: {violation.className}, " +
+                    $"Violation Code: {violation.Constraint}, " +
+                    $"Message: {violation.Message}");
             }
         }
         
