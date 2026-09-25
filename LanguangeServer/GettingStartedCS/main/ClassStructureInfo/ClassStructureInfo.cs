@@ -9,9 +9,14 @@ namespace GettingStartedCS.main.ClassStructureInfo
     public class PropertyStructureInfo
     {
         public string PropertyName;
-        public PropertyStructureInfo(string propertyName)
+        public bool IsReadOnly;
+        public PropertyStructureInfo(
+            string propertyName, 
+            bool isReadOnly
+        )
         {
             this.PropertyName = propertyName;
+            this.IsReadOnly = isReadOnly;
         }
     }
 

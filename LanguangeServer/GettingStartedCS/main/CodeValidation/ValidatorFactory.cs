@@ -11,6 +11,8 @@ namespace GettingStartedCS.main.CodeValidation
             {
                 case DomainType.ENTITY:
                     return new EntityValidate();
+                case DomainType.VALUE_OBJECT:
+                    return new ValueObjectValidator();
                 default:
                     throw new ArgumentOutOfRangeException(
                         nameof(domainType),

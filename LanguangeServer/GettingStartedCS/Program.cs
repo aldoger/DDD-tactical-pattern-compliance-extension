@@ -2,6 +2,8 @@
 using GettingStartedCS.main.CodeValidation;
 using GettingStartedCS.main.IdentifyDomainModel;
 using Microsoft.Build.Locator;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.IO;
@@ -30,9 +32,41 @@ namespace GettingStartedCS
                         {
                             return $""Hello, my name is {Name} and I am {Age} years old."";
                         }
-                    }";
+                    }
 
-            // SyntaxTree tree = CSharpSyntaxTree.ParseText(input);
+                    class Address
+                    {
+                        private string Id { get; set; }
+                        private string Street { get; set; }
+                        private string City { get; set; }
+                        private string PostalCode { get; set; }
+
+                        public Address(string street, string city, string postalCode)
+                        {
+                            Id = Guid.NewGuid().ToString();
+                            Street = street;
+                            City = city;
+                            PostalCode = postalCode;
+                        }
+
+                        public override bool Equals(object obj)
+                        {
+                            if (obj is not Address other) return false;
+                            return Street == other.Street
+                                && City == other.City
+                                && PostalCode == other.PostalCode;
+                        }
+
+                        public override int GetHashCode()
+                        {
+                            return HashCode.Combine(Street, City, PostalCode);
+                        }
+
+                        public string GetFullAddress()
+                        {
+                            return $""{Street}, {City}, {PostalCode}"";
+                        }
+                    }";
 
             DomainModelList domainModelList = new DomainModelList();
             var parser = new parser.Parser();
@@ -42,16 +76,15 @@ namespace GettingStartedCS
             foreach (var classDeclaration in classes)
             {
                 var classInfo = new ClassStructureInfo(classDeclaration.Identifier.Text);
-                var methods = parser.GetMethods(classDeclaration);
-                foreach (var method in methods)
-                {
-                    var classMethodInfo = new MethodStructureInfo(method.Identifier.Text);
-                    classInfo.AddMethod(classMethodInfo);
-                }
                 var properties = parser.GetProperties(classDeclaration);
                 foreach (var property in properties)
                 {
-                    var classPropertyInfo = new PropertyStructureInfo(property.Identifier.Text);
+                    bool isPrivate = property.Modifiers
+                        .IndexOf(SyntaxKind.PrivateKeyword) >= 0;
+                    var classPropertyInfo = new PropertyStructureInfo(
+                        property.Identifier.Text,
+                        isPrivate
+                    );
                     classInfo.AddProperty(classPropertyInfo);
                 }
                 DomainModelIdentifier.IdentifyDomainModels(classDeclaration, classInfo, domainModelList);
@@ -64,9 +97,12 @@ namespace GettingStartedCS
                 switch(domainModel.DomainType)
                 {
                     case DomainType.ENTITY:
-                        Console.WriteLine($"Entity: {domainModel.ClassName}");
                         DomainObjectValidate validator = ValidatorFactory.GetValidator(DomainType.ENTITY);
                         validator.Validate(domainModel, violationList);
+                        break;
+                    case DomainType.VALUE_OBJECT:
+                        DomainObjectValidate valueObjectValidator = ValidatorFactory.GetValidator(DomainType.VALUE_OBJECT);
+                        valueObjectValidator.Validate(domainModel, violationList);
                         break;
                     default:
                         Console.WriteLine($"Unknown Domain Type: {domainModel.ClassName}");
