@@ -51,12 +51,13 @@ namespace GettingStartedCS.main.ClassStructureInfo
     public class ClassStructureInfo
     {
         public string ClassName;
-        public string BaseClassName;              // null kalau cuma inherit object
+        public string BaseClassName;              
         public DomainType DomainType;
+        public bool HasIdProperty;
         public List<PropertyStructureInfo> Properties;
         public List<MethodStructureInfo> Methods;
         public List<ConstructorStructureInfo> Constructors;
-        public bool OverridesEquals;               // indikator kuat Value Object
+        public bool OverridesEquals;               
         public bool OverridesGetHashCode;
 
         public void AddProperty(PropertyStructureInfo property)
@@ -72,6 +73,10 @@ namespace GettingStartedCS.main.ClassStructureInfo
         public void SetBaseClassName(string baseClassName)
         {
             BaseClassName = baseClassName;
+        }
+        public void SetHasIdProperty(bool isId)
+        {
+            HasIdProperty = isId;
         }
 
         public ClassStructureInfo(string className)

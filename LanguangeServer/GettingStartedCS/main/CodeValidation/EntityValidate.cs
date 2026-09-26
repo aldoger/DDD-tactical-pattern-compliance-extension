@@ -38,6 +38,10 @@ namespace GettingStartedCS.main.CodeValidation
 
         public bool ValidateConstraintC1(ClassStructureInfo entity)
         {
+            if(entity.BaseClassName == "Entity")
+            {
+                return entity.HasIdProperty;
+            }
             bool hasIdProperty = entity.Properties.Any(p =>
                 p.PropertyName.Contains("Id", StringComparison.OrdinalIgnoreCase)
             );

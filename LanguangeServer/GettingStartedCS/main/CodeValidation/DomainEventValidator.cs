@@ -15,7 +15,22 @@ namespace GettingStartedCS.main.CodeValidation
 
         public bool ValidateConstraintC5(ClassStructureInfo.ClassStructureInfo classInfo, ViolationList vlist)
         {
-            // C5. A domain event has and only has one identity.
+            throw new NotImplementedException();
+        }
+        public bool ValidateConstraintC6(ClassStructureInfo.ClassStructureInfo classInfo, ViolationList vlist)
+        {
+            throw new NotImplementedException();
+        }
+        public bool ValidateConstraintC7(ClassStructureInfo.ClassStructureInfo classInfo, ViolationList vlist)
+        {
+            throw new NotImplementedException();
+        }
+        public bool ValidateConstraintC8(ClassStructureInfo.ClassStructureInfo classInfo, ViolationList vlist)
+        {
+            throw new NotImplementedException();
+        }
+        public bool ValidateConstraintC9(ClassStructureInfo.ClassStructureInfo classInfo, ViolationList vlist)
+        {
             throw new NotImplementedException();
         }
     }

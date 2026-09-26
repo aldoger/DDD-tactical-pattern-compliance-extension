@@ -26,6 +26,7 @@ namespace GettingStartedCS.main.IdentifyDomainModel
                 && classStructureInfo.BaseClassName.Contains("Entity", StringComparison.OrdinalIgnoreCase))
                 {
                     classStructureInfo.DomainType = DomainType.ENTITY;
+                    classStructureInfo.SetHasIdProperty(true);
                     domainModelList.AddDomainModel(classStructureInfo);
                     return;
                 }
@@ -37,12 +38,14 @@ namespace GettingStartedCS.main.IdentifyDomainModel
                     {
                         classStructureInfo.DomainType = DomainType.ENTITY;
                         domainModelList.AddDomainModel(classStructureInfo);
+                        classStructureInfo.SetHasIdProperty(true);
                         return;
                     }
                 }
 
-                // Value Object
+                // Value Object TODO: Buat lebih spesifik algoritma identifikasi
                 classStructureInfo.DomainType = DomainType.VALUE_OBJECT;
+                classStructureInfo.SetHasIdProperty(false);
                 domainModelList.AddDomainModel(classStructureInfo);
                 return;
             }
