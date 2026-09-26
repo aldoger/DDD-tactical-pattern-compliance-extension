@@ -6,45 +6,58 @@ using System.Threading.Tasks;
 
 namespace GettingStartedCS.main.ClassStructureInfo
 {
+    public class ConstructorStructureInfo
+    {
+        public List<ParameterStructureInfo> Parameters;
+        public bool IsPublic;
+    }
     public class PropertyStructureInfo
     {
         public string PropertyName;
+        public string PropertyType;
         public bool IsReadOnly;
-        public PropertyStructureInfo(
-            string propertyName, 
-            bool isReadOnly
-        )
+        public PropertyStructureInfo(string propertyName, string propertyType, bool readOnly)
         {
-            this.PropertyName = propertyName;
-            this.IsReadOnly = isReadOnly;
+            PropertyName = propertyName;
+            PropertyType = propertyType;
+            IsReadOnly = readOnly;
         }
     }
 
     public class ParameterStructureInfo
     {
         public string ParameterName;
-        public ParameterStructureInfo(string parameterName)
+        public string ParameterType;   
+        public ParameterStructureInfo(string parameterName, string parameterType)
         {
-            this.ParameterName = parameterName;
+            ParameterName = parameterName;
+            ParameterType = parameterType;
         }
     }
 
     public class MethodStructureInfo
     {
-        public MethodStructureInfo(string methodName)
-        {
-            this.MethodName = methodName;
-        }
         public string MethodName;
+        public string ReturnType;
+        public List<ParameterStructureInfo> Parameters;
+        public MethodStructureInfo(string methodName, string returnType)
+        {
+            MethodName = methodName;
+            ReturnType = returnType;
+            Parameters = new List<ParameterStructureInfo>();
+        }
     }
 
     public class ClassStructureInfo
     {
         public string ClassName;
+        public string BaseClassName;              // null kalau cuma inherit object
         public DomainType DomainType;
         public List<PropertyStructureInfo> Properties;
         public List<MethodStructureInfo> Methods;
-
+        public List<ConstructorStructureInfo> Constructors;
+        public bool OverridesEquals;               // indikator kuat Value Object
+        public bool OverridesGetHashCode;
 
         public void AddProperty(PropertyStructureInfo property)
         {
@@ -56,9 +69,14 @@ namespace GettingStartedCS.main.ClassStructureInfo
             Methods.Add(method);
         }
 
+        public void SetBaseClassName(string baseClassName)
+        {
+            BaseClassName = baseClassName;
+        }
+
         public ClassStructureInfo(string className)
         {
-            this.ClassName = className;
+            ClassName = className;
             Properties = new List<PropertyStructureInfo>();
             Methods = new List<MethodStructureInfo>();
         }

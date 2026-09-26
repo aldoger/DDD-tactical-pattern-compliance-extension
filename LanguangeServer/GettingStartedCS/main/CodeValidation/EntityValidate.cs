@@ -10,8 +10,8 @@ namespace GettingStartedCS.main.CodeValidation
     {
         public override void Validate(ClassStructureInfo entity, ViolationList vlist)
         {
-            bool c1 = ValidateEntityC1(entity);
-            bool c2 = ValidateEntityC2(entity);
+            bool c1 = ValidateConstraintC1(entity);
+            bool c2 = ValidateConstraintC2(entity);
 
             if (c1)
             {
@@ -36,28 +36,23 @@ namespace GettingStartedCS.main.CodeValidation
             }
         }
 
-        public bool ValidateEntityC1(ClassStructureInfo entity)
+        public bool ValidateConstraintC1(ClassStructureInfo entity)
         {
             bool hasIdProperty = entity.Properties.Any(p =>
-                string.Equals(
-                    p.PropertyName,
-                    "Id",
-                    StringComparison.OrdinalIgnoreCase
-                ));
+                p.PropertyName.Contains("Id", StringComparison.OrdinalIgnoreCase)
+            );
 
             return !hasIdProperty;
         }
 
-        public bool ValidateEntityC2(ClassStructureInfo entity)
+        public bool ValidateConstraintC2(ClassStructureInfo entity)
         {
-            bool hasIdProperty = entity.Properties.Any(p =>
-                string.Equals(
-                    p.PropertyName,
-                    "Id",
-                    StringComparison.OrdinalIgnoreCase
-                ));
+            var idProperty = entity.Properties.FirstOrDefault(p =>
+                p.PropertyName.Contains("Id", StringComparison.OrdinalIgnoreCase));
 
-            return !hasIdProperty;
+            if (idProperty == null) return false;
+
+            return !idProperty.IsReadOnly;
         }
     }
 }

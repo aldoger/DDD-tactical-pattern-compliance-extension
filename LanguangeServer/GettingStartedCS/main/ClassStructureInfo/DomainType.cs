@@ -21,25 +21,18 @@ namespace GettingStartedCS.main.ClassStructureInfo
             {
                 case DomainType.ENTITY:
                     return "Entity";
-
                 case DomainType.VALUE_OBJECT:
                     return "Value Object";
-
                 case DomainType.AGGREGATE:
                     return "Aggregate";
-
                 case DomainType.REPOSITORY:
                     return "Repository";
-
                 case DomainType.DOMAIN_SERVICE:
                     return "Domain Service";
-
                 case DomainType.DOMAIN_EVENT:
                     return "Domain Event";
-
                 case DomainType.FACTORY:
                     return "Factory";
-
                 default:
                     throw new ArgumentOutOfRangeException(nameof(domainType));
             }

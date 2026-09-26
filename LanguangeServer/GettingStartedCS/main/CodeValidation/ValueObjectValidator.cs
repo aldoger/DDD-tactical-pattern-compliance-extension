@@ -10,8 +10,8 @@ namespace GettingStartedCS.main.CodeValidation
     {
         public override void Validate(ClassStructureInfo.ClassStructureInfo valueObject, ViolationList vlist)
         {
-            bool c3 = ValidateValueObjectC3(valueObject);
-            bool c4 = ValidateValueObjectC4(valueObject);
+            bool c3 = ValidateConstraintC3(valueObject);
+            bool c4 = ValidateConstraintC4(valueObject);
             if (c3)
             {
                 vlist.AddViolation(
@@ -34,7 +34,7 @@ namespace GettingStartedCS.main.CodeValidation
             }
         }
 
-        public bool ValidateValueObjectC3(ClassStructureInfo.ClassStructureInfo valueObject)
+        public bool ValidateConstraintC3(ClassStructureInfo.ClassStructureInfo valueObject)
         {
             bool hasIdProperty = valueObject.Properties.Any(p =>
                string.Equals(
@@ -46,10 +46,10 @@ namespace GettingStartedCS.main.CodeValidation
             return hasIdProperty;
         }
 
-        public bool ValidateValueObjectC4(ClassStructureInfo.ClassStructureInfo valueObject)
+        public bool ValidateConstraintC4(ClassStructureInfo.ClassStructureInfo valueObject)
         {
-            // TODO: Implement validation logic for Value Object C4
-            return false;
+            bool isImmutable = valueObject.Properties.All(p => p.IsReadOnly);
+            return isImmutable;
         }
     }
 }

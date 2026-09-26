@@ -16,57 +16,84 @@ namespace GettingStartedCS
         static async Task Main(string[] args)
         {
             string input = @"
-                    class Human
+                public class Human
+                {
+                    public string Id { get; set; }
+                    public string Name { get; set; }
+                    public int Age { get; set; }
+
+                    public Human(string id, string name, int age)
                     {
-                        public string Id { get; set; }
-                        public string Name { get; set; }
-                        public int Age { get; set; }
-
-                        public Human(string name, int age)
-                        {
-                            Name = name;
-                            Age = age;
-                        }
-
-                        public string Introduce()
-                        {
-                            return $""Hello, my name is {Name} and I am {Age} years old."";
-                        }
+                        Id = id;
+                        Name = name;
+                        Age = age;
                     }
 
-                    class Address
+                    public string Introduce()
                     {
-                        private string Id { get; set; }
-                        private string Street { get; set; }
-                        private string City { get; set; }
-                        private string PostalCode { get; set; }
+                        return $""Hello, my name is {Name} and I am {Age} years old."";
+                    }
+                }
 
-                        public Address(string street, string city, string postalCode)
-                        {
-                            Id = Guid.NewGuid().ToString();
-                            Street = street;
-                            City = city;
-                            PostalCode = postalCode;
-                        }
+                public abstract class Entity
+                {
+                    public Guid Id { get; }
 
-                        public override bool Equals(object obj)
-                        {
-                            if (obj is not Address other) return false;
-                            return Street == other.Street
-                                && City == other.City
-                                && PostalCode == other.PostalCode;
-                        }
+                    protected Entity(Guid id)
+                    {
+                        Id = id;
+                    }
+                }
 
-                        public override int GetHashCode()
-                        {
-                            return HashCode.Combine(Street, City, PostalCode);
-                        }
+                public class Order : Entity
+                {
+                    public string CustomerName { get; private set; }
+                    public decimal Total { get; private set; }
 
-                        public string GetFullAddress()
-                        {
-                            return $""{Street}, {City}, {PostalCode}"";
-                        }
-                    }";
+                    public Order(Guid id, string customerName, decimal total) : base(id)
+                    {
+                        CustomerName = customerName;
+                        Total = total;
+                    }
+
+                    public void ApplyDiscount(decimal percentage)
+                    {
+                        Total -= Total * (percentage / 100m);
+                    }
+                }
+
+                public class Address
+                {
+                    public string Street { get; }
+                    public string City { get; }
+                    public string PostalCode { get; }
+
+                    public Address(string street, string city, string postalCode)
+                    {
+                        Street = street;
+                        City = city;
+                        PostalCode = postalCode;
+                    }
+
+                    public override bool Equals(object obj)
+                    {
+                        if (obj is not Address other) return false;
+                        return Street == other.Street
+                            && City == other.City
+                            && PostalCode == other.PostalCode;
+                    }
+
+                    public override int GetHashCode()
+                    {
+                        return HashCode.Combine(Street, City, PostalCode);
+                    }
+
+                    public string GetFullAddress()
+                    {
+                        return $""{Street}, {City}, {PostalCode}"";
+                    }
+                }
+            }";
 
             DomainModelList domainModelList = new DomainModelList();
             var parser = new parser.Parser();
@@ -76,16 +103,15 @@ namespace GettingStartedCS
             foreach (var classDeclaration in classes)
             {
                 var classInfo = new ClassStructureInfo(classDeclaration.Identifier.Text);
+                var classBaseType = parser.GetClassBaseType(classDeclaration);
+                classInfo.SetBaseClassName(classBaseType);
                 var properties = parser.GetProperties(classDeclaration);
                 foreach (var property in properties)
                 {
-                    bool isPrivate = property.Modifiers
-                        .IndexOf(SyntaxKind.PrivateKeyword) >= 0;
-                    var classPropertyInfo = new PropertyStructureInfo(
-                        property.Identifier.Text,
-                        isPrivate
-                    );
-                    classInfo.AddProperty(classPropertyInfo);
+                    var isReadOnly = parser.IsPropertyImmutable(property);
+                    var propertyType = parser.GetPropertyType(property);
+                    var classProperty = new PropertyStructureInfo(property.Identifier.Text, propertyType, isReadOnly);
+                    classInfo.AddProperty(classProperty);
                 }
                 DomainModelIdentifier.IdentifyDomainModels(classDeclaration, classInfo, domainModelList);
             }
