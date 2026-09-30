@@ -15,6 +15,8 @@ namespace GettingStartedCS.main.CodeValidation
                     return new ValueObjectValidator();
                 case DomainType.DOMAIN_EVENT:
                     return new DomainEventValidator();
+                case DomainType.DOMAIN_SERVICE:
+                    return new DomainServiceValidator();
                 case DomainType.REPOSITORY:
                     return new RepositoryValidator();
                 case DomainType.FACTORY:

@@ -20,6 +20,9 @@ namespace GettingStartedCS.main.CodeValidation
         CONSTRAINT_C7 = 7,
         CONSTRAINT_C8 = 8,
         CONSTRAINT_C9 = 9,
+        // Domain Services
+        CONSTRAINT_C10 = 10,
+        CONSTRAINT_C11 = 11,
         // Repository constraints
         CONSTRAINT_12 = 12,
         CONSTRAINT_13 = 13,
@@ -53,6 +56,10 @@ namespace GettingStartedCS.main.CodeValidation
                     return "C8. A domain event is immutable.";
                 case Constraint.CONSTRAINT_C9:
                     return "C9. A domain event needs to specify the publisher and subscriber of the event.";
+                case Constraint.CONSTRAINT_C10:
+                    return "C10. A domain service is stateless";
+                case Constraint.CONSTRAINT_C11:
+                    return "C11. A domain service should not be designed as\r\nother patterns at the same time.";
                 case Constraint.CONSTRAINT_12:
                     return "12. A repository needs to specify the object that it accesses. The object can be entity, value object, and aggregate root";
                 case Constraint.CONSTRAINT_13:

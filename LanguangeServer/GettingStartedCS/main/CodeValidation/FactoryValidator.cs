@@ -10,7 +10,22 @@ namespace GettingStartedCS.main.CodeValidation
     {
         public override void Validate(ClassStructureInfo.ClassStructureInfo classInfo, ViolationList vlist)
         {
-            throw new NotImplementedException();
+            bool c15 = ValidateConstraintC15(classInfo);
+            bool c16 = ValidateConstraintC16(classInfo);
+            if (c15)
+            {
+
+            }
+        }
+        public bool ValidateConstraintC15(ClassStructureInfo.ClassStructureInfo factory)
+        {
+            // TODO: Access the parameter or return type to see what object it create
+            return true;
+        }
+        public bool ValidateConstraintC16(ClassStructureInfo.ClassStructureInfo factory)
+        {
+            // Still confused
+            return true;
         }
     }
 }

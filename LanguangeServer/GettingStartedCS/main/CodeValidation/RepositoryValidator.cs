@@ -25,6 +25,10 @@ namespace GettingStartedCS.main.CodeValidation
             }
             return false;
         }
-        
+        public bool ValidateConstraintC14(ClassStructureInfo.ClassStructureInfo repository)
+        {
+            // Still confused C14
+            return true;
+        }
     }
 }
