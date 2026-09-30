@@ -15,6 +15,10 @@ namespace GettingStartedCS.main.CodeValidation
                     return new ValueObjectValidator();
                 case DomainType.DOMAIN_EVENT:
                     return new DomainEventValidator();
+                case DomainType.REPOSITORY:
+                    return new RepositoryValidator();
+                case DomainType.FACTORY:
+                    return new FactoryValidator();
                 default:
                     throw new ArgumentOutOfRangeException(
                         nameof(domainType),
