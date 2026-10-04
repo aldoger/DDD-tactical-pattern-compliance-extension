@@ -18,7 +18,7 @@ namespace GettingStartedCS.main.CodeValidation
                     new Violation(
                         valueObject.ClassName,
                         Constraint.CONSTRAINT_C3,
-                        ConstraintExtensions.GetDescription(Constraint.CONSTRAINT_C3)
+                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C3)
                     )
                 );
             }
@@ -28,7 +28,7 @@ namespace GettingStartedCS.main.CodeValidation
                     Violation(
                         valueObject.ClassName,
                         Constraint.CONSTRAINT_C4, 
-                        ConstraintExtensions.GetDescription(Constraint.CONSTRAINT_C4)    
+                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C4)    
                     )
                 );
             }

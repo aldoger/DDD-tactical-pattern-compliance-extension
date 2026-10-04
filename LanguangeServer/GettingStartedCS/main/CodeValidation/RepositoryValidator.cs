@@ -10,7 +10,33 @@ namespace GettingStartedCS.main.CodeValidation
     {
         public override void Validate(ClassStructureInfo.ClassStructureInfo classInfo, ViolationList vlist)
         {
-            throw new NotImplementedException();
+            bool c12 = ValidateConstrainC12(classInfo);
+            bool c13 = ValidateConstraintC13(classInfo);
+            bool c14 = ValidateConstraintC14(classInfo);
+            if (!c12)
+            {
+                vlist.AddViolation(new Violation(
+                    classInfo.ClassName, 
+                    Constraint.CONSTRAINT_12, 
+                    ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_12))
+                );
+            }
+            if (!c13)
+            {
+                vlist.AddViolation(new Violation(
+                    classInfo.ClassName, 
+                    Constraint.CONSTRAINT_13, 
+                    ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_13))
+                );
+            }
+            if (!c14)
+            {
+                vlist.AddViolation(new Violation(
+                    classInfo.ClassName, 
+                    Constraint.CONSTRAINT_14, 
+                    ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_14))
+                );
+            }
         }
         public bool ValidateConstrainC12(ClassStructureInfo.ClassStructureInfo repository)
         {
@@ -19,11 +45,7 @@ namespace GettingStartedCS.main.CodeValidation
         }
         public bool ValidateConstraintC13(ClassStructureInfo.ClassStructureInfo repository)
         {
-            if(repository.Properties.Count == 0)
-            {
-                return true;
-            }
-            return false;
+            return repository.Properties.Count == 0;
         }
         public bool ValidateConstraintC14(ClassStructureInfo.ClassStructureInfo repository)
         {

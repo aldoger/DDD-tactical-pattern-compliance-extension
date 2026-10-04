@@ -6,11 +6,6 @@ using System.Threading.Tasks;
 
 namespace GettingStartedCS.main.ClassStructureInfo
 {
-    public class ConstructorStructureInfo
-    {
-        public List<ParameterStructureInfo> Parameters;
-        public bool IsPublic;
-    }
     public class PropertyStructureInfo
     {
         public string PropertyName;
@@ -38,6 +33,7 @@ namespace GettingStartedCS.main.ClassStructureInfo
     public class MethodStructureInfo
     {
         public string MethodName;
+        public bool IsStatic;
         public string ReturnType;
         public List<ParameterStructureInfo> Parameters;
         public MethodStructureInfo(string methodName, string returnType)
@@ -51,15 +47,12 @@ namespace GettingStartedCS.main.ClassStructureInfo
     public class ClassStructureInfo
     {
         public string ClassName;
-        public string BaseClassName;              
+        public string BaseClassName;
         public DomainType DomainType;
-        public bool HasIdProperty;
         public List<PropertyStructureInfo> Properties;
         public List<MethodStructureInfo> Methods;
-        public List<ConstructorStructureInfo> Constructors;
-        public bool OverridesEquals;               
-        public bool OverridesGetHashCode;
-
+        public bool hasConstructorWithParameters;
+        public bool IsStatic;
         public void AddProperty(PropertyStructureInfo property)
         {
             Properties.Add(property);
@@ -73,10 +66,6 @@ namespace GettingStartedCS.main.ClassStructureInfo
         public void SetBaseClassName(string baseClassName)
         {
             BaseClassName = baseClassName;
-        }
-        public void SetHasIdProperty(bool isId)
-        {
-            HasIdProperty = isId;
         }
 
         public ClassStructureInfo(string className)

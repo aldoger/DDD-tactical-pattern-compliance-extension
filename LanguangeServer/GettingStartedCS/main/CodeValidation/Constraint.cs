@@ -30,9 +30,19 @@ namespace GettingStartedCS.main.CodeValidation
         // Factory constraints
         CONSTRAINT_15 = 15,
         CONSTRAINT_16 = 16,
+        // Aggregate constraints
+        CONSTRAINT_17 = 17,
+        CONSTRAINT_18 = 18,
+        CONSTRAINT_19 = 19,
+        CONSTRAINT_20 = 20,
+        CONSTRAINT_21 = 21,
+        CONSTRAINT_22 = 22,
+        CONSTRAINT_23 = 23,
+        CONSTRAINT_24 = 24,
+
     }
 
-    public static class ConstraintExtensions
+    public static class ConstraintDescriptions
     {
         public static string GetDescription(this Constraint constraint)
         {
@@ -59,7 +69,7 @@ namespace GettingStartedCS.main.CodeValidation
                 case Constraint.CONSTRAINT_C10:
                     return "C10. A domain service is stateless";
                 case Constraint.CONSTRAINT_C11:
-                    return "C11. A domain service should not be designed as\r\nother patterns at the same time.";
+                    return "C11. A domain service should not be designed as another patterns at the same time.";
                 case Constraint.CONSTRAINT_12:
                     return "12. A repository needs to specify the object that it accesses. The object can be entity, value object, and aggregate root";
                 case Constraint.CONSTRAINT_13:

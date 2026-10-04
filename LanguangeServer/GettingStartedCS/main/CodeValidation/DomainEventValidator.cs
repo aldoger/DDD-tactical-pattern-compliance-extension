@@ -18,23 +18,43 @@ namespace GettingStartedCS.main.CodeValidation
 
             if (c5)
             {
-                vlist.AddViolation(new Violation(classInfo.ClassName, Constraint.CONSTRAINT_C5, ConstraintExtensions.GetDescription(Constraint.CONSTRAINT_C5)));
+                vlist.AddViolation(new Violation(
+                    classInfo.ClassName, 
+                    Constraint.CONSTRAINT_C5, 
+                    ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C5))
+                );
             }
             if (c6)
             {
-                vlist.AddViolation(new Violation(classInfo.ClassName, Constraint.CONSTRAINT_C6, ConstraintExtensions.GetDescription(Constraint.CONSTRAINT_C6)));
+                vlist.AddViolation(new Violation(
+                    classInfo.ClassName, 
+                    Constraint.CONSTRAINT_C6, 
+                    ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C6))
+                );
             }
             if (c7)
             {
-                vlist.AddViolation(new Violation(classInfo.ClassName, Constraint.CONSTRAINT_C7, ConstraintExtensions.GetDescription(Constraint.CONSTRAINT_C7)));
+                vlist.AddViolation(new Violation(
+                    classInfo.ClassName, 
+                    Constraint.CONSTRAINT_C7, 
+                    ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C7))
+                );
             }
             if (c8)
             {
-                vlist.AddViolation(new Violation(classInfo.ClassName, Constraint.CONSTRAINT_C8, ConstraintExtensions.GetDescription(Constraint.CONSTRAINT_C8)));
+                vlist.AddViolation(new Violation(
+                    classInfo.ClassName, 
+                    Constraint.CONSTRAINT_C8, 
+                    ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C8))
+                );
             }
             if (c9)
             {
-                vlist.AddViolation(new Violation(classInfo.ClassName, Constraint.CONSTRAINT_C9, ConstraintExtensions.GetDescription(Constraint.CONSTRAINT_C9)));
+                vlist.AddViolation(new Violation(
+                    classInfo.ClassName, 
+                    Constraint.CONSTRAINT_C9, 
+                    ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C9))
+                );
             }
         }
 

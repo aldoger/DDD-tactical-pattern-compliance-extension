@@ -12,9 +12,21 @@ namespace GettingStartedCS.main.CodeValidation
         {
             bool c15 = ValidateConstraintC15(classInfo);
             bool c16 = ValidateConstraintC16(classInfo);
-            if (c15)
+            if (!c15)
             {
-
+                vlist.AddViolation(new Violation(
+                    classInfo.ClassName, 
+                    Constraint.CONSTRAINT_15, 
+                    ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_15))
+                 );
+            }
+            if (!c16)
+            {
+                vlist.AddViolation(new Violation(
+                    classInfo.ClassName, 
+                    Constraint.CONSTRAINT_16, 
+                    ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_16))
+                );
             }
         }
         public bool ValidateConstraintC15(ClassStructureInfo.ClassStructureInfo factory)

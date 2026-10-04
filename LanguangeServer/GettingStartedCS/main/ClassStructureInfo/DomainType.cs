@@ -6,11 +6,12 @@ namespace GettingStartedCS.main.ClassStructureInfo
     {
         ENTITY,
         VALUE_OBJECT,
-        AGGREGATE,
         REPOSITORY,
         DOMAIN_SERVICE,
         DOMAIN_EVENT,
-        FACTORY
+        FACTORY,
+        AGGREGATE_PART,
+        AGGREGATE_ROOT
     }
 
     public static class DomainTypeExtensions
@@ -23,8 +24,6 @@ namespace GettingStartedCS.main.ClassStructureInfo
                     return "Entity";
                 case DomainType.VALUE_OBJECT:
                     return "Value Object";
-                case DomainType.AGGREGATE:
-                    return "Aggregate";
                 case DomainType.REPOSITORY:
                     return "Repository";
                 case DomainType.DOMAIN_SERVICE:
@@ -33,6 +32,10 @@ namespace GettingStartedCS.main.ClassStructureInfo
                     return "Domain Event";
                 case DomainType.FACTORY:
                     return "Factory";
+                case DomainType.AGGREGATE_PART:
+                    return "Aggregate Part";
+                case DomainType.AGGREGATE_ROOT:
+                    return "Aggregate Root";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(domainType));
             }
