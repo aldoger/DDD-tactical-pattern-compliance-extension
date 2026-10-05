@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GettingStartedCS.main.IdentifyDomainModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,18 +9,19 @@ namespace GettingStartedCS.main.CodeValidation
 {
     public class DomainEventValidator : DomainObjectValidate
     {
-        public override void Validate(ClassStructureInfo.ClassStructureInfo classInfo, ViolationList vlist)
+        public override void Validate(StructureInfo.DomainModelStruct domainModel, ViolationList vlist, DomainModelList domainList)
         {
-            bool c5 = ValidateConstraintC5(classInfo);
-            bool c6 = ValidateConstraintC6(classInfo);
-            bool c7 = ValidateConstraintC7(classInfo);
-            bool c8 = ValidateConstraintC8(classInfo);
-            bool c9 = ValidateConstraintC9(classInfo);
+            StructureInfo.DomainEvent domainEvent = (StructureInfo.DomainEvent)domainModel;
+            bool c5 = ValidateConstraintC5(domainEvent);
+            bool c6 = ValidateConstraintC6(domainEvent);
+            bool c7 = ValidateConstraintC7(domainEvent);
+            bool c8 = ValidateConstraintC8(domainEvent);
+            bool c9 = ValidateConstraintC9(domainEvent);
 
             if (c5)
             {
                 vlist.AddViolation(new Violation(
-                    classInfo.ClassName, 
+                    domainEvent.Name, 
                     Constraint.CONSTRAINT_C5, 
                     ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C5))
                 );
@@ -27,7 +29,7 @@ namespace GettingStartedCS.main.CodeValidation
             if (c6)
             {
                 vlist.AddViolation(new Violation(
-                    classInfo.ClassName, 
+                    domainEvent.Name, 
                     Constraint.CONSTRAINT_C6, 
                     ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C6))
                 );
@@ -35,7 +37,7 @@ namespace GettingStartedCS.main.CodeValidation
             if (c7)
             {
                 vlist.AddViolation(new Violation(
-                    classInfo.ClassName, 
+                    domainEvent.Name, 
                     Constraint.CONSTRAINT_C7, 
                     ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C7))
                 );
@@ -43,7 +45,7 @@ namespace GettingStartedCS.main.CodeValidation
             if (c8)
             {
                 vlist.AddViolation(new Violation(
-                    classInfo.ClassName, 
+                    domainEvent.Name, 
                     Constraint.CONSTRAINT_C8, 
                     ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C8))
                 );
@@ -51,33 +53,33 @@ namespace GettingStartedCS.main.CodeValidation
             if (c9)
             {
                 vlist.AddViolation(new Violation(
-                    classInfo.ClassName, 
+                    domainEvent.Name, 
                     Constraint.CONSTRAINT_C9, 
                     ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C9))
                 );
             }
         }
 
-        public bool ValidateConstraintC5(ClassStructureInfo.ClassStructureInfo classInfo)
+        public bool ValidateConstraintC5(StructureInfo.DomainEvent domainEvent)
         {
-            return classInfo.HasIdProperty;
+            return domainEvent.HasIdProperty;
         }
-        public bool ValidateConstraintC6(ClassStructureInfo.ClassStructureInfo classInfo)
+        public bool ValidateConstraintC6(StructureInfo.DomainEvent domainEvent)
         {
-            bool hasIdProperty = classInfo.Properties.Any(p => p.PropertyName == "Id" && (p.PropertyType == "Guid" || p.PropertyType == "string"));
+            bool hasIdProperty = domainEvent.Properties.Any(p => p.PropertyName == "Id" && (p.PropertyType == "Guid" || p.PropertyType == "string"));
             return hasIdProperty;
         }
-        public bool ValidateConstraintC7(ClassStructureInfo.ClassStructureInfo classInfo)
+        public bool ValidateConstraintC7(StructureInfo.DomainEvent domainEvent)
         {
-            bool hasTimeDate = classInfo.Properties.Any(p => p.PropertyType == "DateTime" || p.PropertyType == "DateTimeOffset");
+            bool hasTimeDate = domainEvent.Properties.Any(p => p.PropertyType == "DateTime" || p.PropertyType == "DateTimeOffset");
             return hasTimeDate;
         }
-        public bool ValidateConstraintC8(ClassStructureInfo.ClassStructureInfo classInfo)
+        public bool ValidateConstraintC8(StructureInfo.DomainEvent domainEvent)
         {
-            bool isImmutable = classInfo.Properties.All(p => p.IsReadOnly);
+            bool isImmutable = domainEvent.Properties.All(p => p.IsReadOnly);
             return isImmutable;
         }
-        public bool ValidateConstraintC9(ClassStructureInfo.ClassStructureInfo classInfo)
+        public bool ValidateConstraintC9(StructureInfo.DomainEvent domainEvent)
         {
             /* 
                 TODO: Cari cara identifikasi publisher subscriber

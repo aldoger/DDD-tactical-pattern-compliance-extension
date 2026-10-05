@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GettingStartedCS.main.ClassStructureInfo
+namespace GettingStartedCS.main.StructureInfo
 {
     public enum DomainType
     {

@@ -3,13 +3,12 @@ using System.Linq;
 
 namespace GettingStartedCS.main.IdentifyDomainModel
 {
-    using GettingStartedCS.main.ClassStructureInfo;
+    using GettingStartedCS.main.StructureInfo;
     public class DomainModelList
     {
         public DomainModelList() { }
-        public List<ClassStructureInfo> DomainModels { get; } = new List<ClassStructureInfo>();
-
-        public void AddDomainModel(ClassStructureInfo domainModel)
+        public List<DomainModelStruct> DomainModels { get; } = new List<DomainModelStruct>();
+        public void AddDomainModel(DomainModelStruct domainModel)
         {
             DomainModels.Add(domainModel);
         }
@@ -17,9 +16,14 @@ namespace GettingStartedCS.main.IdentifyDomainModel
         {
             return DomainModels.Count > 0;
         }
-        public bool ContainsDomainModel(string className)
+        public bool ContainsDomainModel(string name)
         {
-            return DomainModels.Any(dm => dm.ClassName == className);
+            return DomainModels.Any(dm => dm.Name == name);
+        }
+        public DomainModelStruct? GetDomainModel(string name)
+        {
+            var domainModel = DomainModels.FirstOrDefault(dm => dm.Name == name);
+            return domainModel;
         }
     }
 }

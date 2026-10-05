@@ -1,13 +1,15 @@
-﻿using GettingStartedCS.main.ClassStructureInfo;
+﻿using GettingStartedCS.main.StructureInfo;
 using GettingStartedCS.main.CodeValidation;
 using GettingStartedCS.main.IdentifyDomainModel;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace GettingStartedCS
 {
@@ -93,9 +95,38 @@ namespace GettingStartedCS
                         return $""{Street}, {City}, {PostalCode}"";
                     }
                 }
-            }";
 
-            DomainModelList domainModelList = new DomainModelList();
+                public static class HumanFactory 
+                {
+
+                    public static Human Create(string name, int age)
+                    {
+                        if (string.IsNullOrWhiteSpace(name))
+                            throw new ArgumentException(""Name is required."", nameof(name));
+                        if (age < 0)
+                            throw new ArgumentOutOfRangeException(nameof(age));
+
+                        return new Human(Guid.NewGuid().ToString(), name, age);
+                    }
+                }   
+
+                public static class AddressFactory
+                {
+                    public static Address Create(string street, string city, string postalCode)
+                    {
+                        if (string.IsNullOrWhiteSpace(street))
+                            throw new ArgumentException(""Street is required."", nameof(street));
+                        if (string.IsNullOrWhiteSpace(city))
+                            throw new ArgumentException(""City is required."", nameof(city));
+                        if (string.IsNullOrWhiteSpace(postalCode))
+                            throw new ArgumentException(""Postal code is required."", nameof(postalCode));
+
+                        return new Address(street, city, postalCode);
+                    }
+                }
+            ";
+
+            ClassStructureInfoList classStructureInfoList = new ClassStructureInfoList();
             var parser = new parser.Parser();
             parser.Parse(input);
             var classes = parser.GetClasses();
@@ -103,45 +134,65 @@ namespace GettingStartedCS
             foreach (var classDeclaration in classes)
             {
                 var classInfo = new ClassStructureInfo(classDeclaration.Identifier.Text);
-                var classBaseType = parser.GetClassBaseType(classDeclaration);
-                classInfo.SetBaseClassName(classBaseType);
-                var properties = parser.GetProperties(classDeclaration);
-                foreach (var property in properties)
+
+                if(parser.HasConstructor(classDeclaration))
                 {
-                    var isReadOnly = parser.IsPropertyImmutable(property);
-                    var propertyType = parser.GetPropertyType(property);
-                    var classProperty = new PropertyStructureInfo(property.Identifier.Text, propertyType, isReadOnly);
-                    classInfo.AddProperty(classProperty);
+                    classInfo.SetHasConstructor(true);
                 }
-                DomainModelIdentifier.IdentifyDomainModels(classDeclaration, classInfo, domainModelList);
+
+                classInfo.SetIsStatic(parser.IsClassStatic(classDeclaration));
+
+                string baseClassName = parser.GetClassBaseType(classDeclaration);
+                if (!string.IsNullOrEmpty(baseClassName))
+                {
+                    classInfo.SetBaseClassName(baseClassName);
+                }
+
+                bool isImmutable = parser.IsClassImmutable(classDeclaration);
+                classInfo.SetIsImmutable(isImmutable);
+
+                foreach (var property in parser.GetProperties(classDeclaration))
+                {
+                    var propertyInfo = new PropertyStructureInfo(property.Identifier.Text, parser.GetPropertyType(property), parser.IsPropertyImmutable(property));
+                    classInfo.AddProperty(propertyInfo);
+                }
+                foreach (var method in parser.GetMethods(classDeclaration))
+                {
+                    var methodInfo = new MethodStructureInfo(method.Identifier.Text, parser.GetMethodReturnType(method));
+                    methodInfo.SetIsStatic(parser.IsMethodStatic(method));
+                    classInfo.AddMethod(methodInfo);
+                }
+                classStructureInfoList.AddClass(classInfo);
             }
 
-            ViolationList violationList = new ViolationList();
+            DomainModelList domainModelList = new DomainModelList();
+
+            foreach(var c in classStructureInfoList.Classes)
+            {
+               DomainModelIdentifier.IdentifyDomainModels(c, classStructureInfoList, domainModelList);
+            }
 
             foreach(var domainModel in domainModelList.DomainModels)
             {
-                switch(domainModel.DomainType)
+                Console.WriteLine($"Domain Model: {domainModel.Name} ({domainModel.DomainType})");
+                var validator = ValidatorFactory.GetValidator(domainModel);
+                if (validator != null)
                 {
-                    case DomainType.ENTITY:
-                        DomainObjectValidate validator = ValidatorFactory.GetValidator(DomainType.ENTITY);
-                        validator.Validate(domainModel, violationList);
-                        break;
-                    case DomainType.VALUE_OBJECT:
-                        DomainObjectValidate valueObjectValidator = ValidatorFactory.GetValidator(DomainType.VALUE_OBJECT);
-                        valueObjectValidator.Validate(domainModel, violationList);
-                        break;
-                    default:
-                        Console.WriteLine($"Unknown Domain Type: {domainModel.ClassName}");
-                        break;
+                    ViolationList vlist = new ViolationList();
+                    validator.Validate(domainModel, vlist, domainModelList);
+                    if (vlist.Violations.Count > 0)
+                    {
+                        Console.WriteLine($"Violations for {domainModel.Name} ({domainModel.DomainType}):");
+                        foreach (var violation in vlist.Violations)
+                        {
+                            Console.WriteLine($"- {violation.Constraint}: {violation.Message}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"No violations for {domainModel.Name} ({domainModel.DomainType}).");
+                    }
                 }
-            }
-
-            foreach(var violation in violationList.Violations)
-            {
-                Console.WriteLine($"" +
-                    $"Class: {violation.className}, " +
-                    $"Violation Code: {violation.Constraint}, " +
-                    $"Message: {violation.Message}");
             }
         }
         

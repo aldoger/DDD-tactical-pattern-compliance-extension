@@ -1,27 +1,27 @@
-﻿using GettingStartedCS.main.ClassStructureInfo;
+﻿using GettingStartedCS.main.StructureInfo;
 using System;
 
 namespace GettingStartedCS.main.CodeValidation
 {
     public class ValidatorFactory
     {
-        public static DomainObjectValidate GetValidator(DomainType domainType)
+        public static DomainObjectValidate GetValidator(DomainModelStruct domainType)
         {
             switch (domainType)
             {
-                case DomainType.ENTITY:
+                case Entity:
                     return new EntityValidate();
-                case DomainType.VALUE_OBJECT:
+                case ValueObject:
                     return new ValueObjectValidator();
-                case DomainType.DOMAIN_EVENT:
+                case DomainEvent:
                     return new DomainEventValidator();
-                case DomainType.DOMAIN_SERVICE:
+                case DomainService:
                     return new DomainServiceValidator();
-                case DomainType.REPOSITORY:
+                case Repository:
                     return new RepositoryValidator();
-                case DomainType.FACTORY:
+                case Factory:
                     return new FactoryValidator();
-                case DomainType.AGGREGATE_PART or DomainType.AGGREGATE_ROOT:
+                case Aggregate:
                     return new AggregateValidator();
                 default:
                     throw new ArgumentOutOfRangeException(

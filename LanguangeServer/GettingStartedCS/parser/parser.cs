@@ -38,7 +38,6 @@ namespace GettingStartedCS.parser
             this.semanticModel = compilation.GetSemanticModel(tree);
         }
 
-        // Get all class declarations, methods in class, and properties in the syntax tree
         public IEnumerable<ClassDeclarationSyntax> GetClasses()
         {
             return root.DescendantNodes().OfType<ClassDeclarationSyntax>();
@@ -54,7 +53,6 @@ namespace GettingStartedCS.parser
             return classDeclaration.DescendantNodes().OfType<PropertyDeclarationSyntax>();
         }
 
-        // Get Detail Information about a class, including its name, base type, methods, and properties
         public string GetPropertyType(PropertyDeclarationSyntax classProperty)
         {
             return classProperty.Type.ToString();
@@ -110,7 +108,6 @@ namespace GettingStartedCS.parser
 
             return false;
         }
-
         public string GetClassBaseType(ClassDeclarationSyntax classDeclaration)
         {
             var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration);
@@ -122,6 +119,63 @@ namespace GettingStartedCS.parser
                 return null;
 
             return classSymbol.BaseType.Name;
+        }
+        
+        public bool HasConstructor(ClassDeclarationSyntax classDeclaration)
+        {
+            return classDeclaration.DescendantNodes().OfType<ConstructorDeclarationSyntax>().Any();
+        }
+        public string GetMethodReturnType(MethodDeclarationSyntax methodDeclaration)
+        {
+            return methodDeclaration.ReturnType.ToString();
+        }
+        public bool IsMethodStatic(MethodDeclarationSyntax methodDeclaration)
+        {
+            return methodDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword);
+        }
+        public bool IsClassStatic(ClassDeclarationSyntax classDeclaration)
+        {
+            return classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword);
+        }
+        public bool IsClassImmutable(ClassDeclarationSyntax classDeclaration)
+        {
+            var propertiesOk = classDeclaration.Members
+                .OfType<PropertyDeclarationSyntax>()
+                .Where(p => !p.Modifiers.Any(SyntaxKind.StaticKeyword))
+                .All(IsPropertyImmutable);
+
+            var fieldsOk = classDeclaration.Members
+                .OfType<FieldDeclarationSyntax>()
+                .Where(f => !f.Modifiers.Any(SyntaxKind.StaticKeyword)
+                         && !f.Modifiers.Any(SyntaxKind.ConstKeyword))
+                .All(f => f.Modifiers.Any(SyntaxKind.ReadOnlyKeyword));
+
+            return propertiesOk && fieldsOk;
+        }
+        public bool HasValueEquality(ClassDeclarationSyntax classDeclaration)
+        {
+            var symbol = semanticModel.GetDeclaredSymbol(classDeclaration);
+            if (symbol == null)
+                return false;
+
+            if (symbol.IsRecord)
+                return true;
+
+            if (symbol.AllInterfaces.Any(i => i.OriginalDefinition.ToDisplayString() == "System.IEquatable<T>"))
+                return true;
+
+            bool overridesEquals = false, overridesHash = false;
+            for (var t = symbol; t != null && t.SpecialType != SpecialType.System_Object; t = t.BaseType)
+            {
+                overridesEquals |= t.GetMembers("Equals").OfType<IMethodSymbol>()
+                    .Any(m => m.IsOverride && m.Parameters.Length == 1
+                           && m.Parameters[0].Type.SpecialType == SpecialType.System_Object);
+
+                overridesHash |= t.GetMembers("GetHashCode").OfType<IMethodSymbol>()
+                    .Any(m => m.IsOverride && m.Parameters.Length == 0);
+            }
+
+            return overridesEquals && overridesHash;
         }
     }
 }

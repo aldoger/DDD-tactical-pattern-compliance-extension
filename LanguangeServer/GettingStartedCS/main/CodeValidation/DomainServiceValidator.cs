@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GettingStartedCS.main.IdentifyDomainModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,14 +9,15 @@ namespace GettingStartedCS.main.CodeValidation
 {
     public class DomainServiceValidator : DomainObjectValidate
     {
-        public override void Validate(ClassStructureInfo.ClassStructureInfo classInfo, ViolationList vlist)
+        public override void Validate(StructureInfo.DomainModelStruct domainModel, ViolationList vlist, DomainModelList domainList)
         {
-            bool c10 = ValidateConstraintC10(classInfo);
-            bool c11 = ValidateConstraintC11(classInfo);
+            StructureInfo.DomainService service = (StructureInfo.DomainService)domainModel;
+            bool c10 = ValidateConstraintC10(service);
+            bool c11 = ValidateConstraintC11(service);
             if(!c10)
             {
                 vlist.AddViolation(new Violation(
-                    classInfo.ClassName,
+                    service.Name,
                     Constraint.CONSTRAINT_C10,
                     ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C10)
                 ));
@@ -23,17 +25,17 @@ namespace GettingStartedCS.main.CodeValidation
             if(!c11)
             {
                 vlist.AddViolation(new Violation(
-                    classInfo.ClassName,
+                    service.Name,
                     Constraint.CONSTRAINT_C11,
                     ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C11)
                 ));
             }
         }
-        public bool ValidateConstraintC10(ClassStructureInfo.ClassStructureInfo service)
+        public bool ValidateConstraintC10(StructureInfo.DomainService service)
         {
-            return service.Properties.Count == 0;
+            return service.HasProperties;
         }
-        public bool ValidateConstraintC11(ClassStructureInfo.ClassStructureInfo service)
+        public bool ValidateConstraintC11(StructureInfo.DomainService service)
         {
             // Still confuse
             return true;
