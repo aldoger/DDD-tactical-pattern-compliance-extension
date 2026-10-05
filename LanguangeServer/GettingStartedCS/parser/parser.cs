@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using GettingStartedCS.main.StructureInfo;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
@@ -124,6 +125,20 @@ namespace GettingStartedCS.parser
         public bool HasConstructor(ClassDeclarationSyntax classDeclaration)
         {
             return classDeclaration.DescendantNodes().OfType<ConstructorDeclarationSyntax>().Any();
+        }
+        public List<ParameterStructureInfo> GetMethodsParameter(MethodDeclarationSyntax methodDeclaration)
+        {
+            var parameters = new List<ParameterStructureInfo>();
+            foreach (var parameter in methodDeclaration.ParameterList.Parameters)
+            {
+                if(parameter.Type == null)
+                {
+                    parameters.Add(new ParameterStructureInfo(parameter.Identifier.Text, "unknown"));
+                    continue;
+                }
+                parameters.Add(new ParameterStructureInfo(parameter.Identifier.Text, parameter.Type.ToString()));
+            }
+            return parameters;
         }
         public string GetMethodReturnType(MethodDeclarationSyntax methodDeclaration)
         {

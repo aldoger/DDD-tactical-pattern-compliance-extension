@@ -10,6 +10,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Host;
 
 namespace GettingStartedCS
 {
@@ -124,6 +125,127 @@ namespace GettingStartedCS
                         return new Address(street, city, postalCode);
                     }
                 }
+                
+                public interface IDiscountPolicy
+                {
+                    bool IsEligible(Human customer);
+                    decimal GetPercentage(Human customer);
+                }
+
+                public class SeniorDiscountPolicy : IDiscountPolicy
+                {
+                    private const int SeniorAgeThreshold = 60;
+                    private const decimal SeniorDiscountPercentage = 10m;
+
+                    public bool IsEligible(Human customer) => customer.Age >= SeniorAgeThreshold;
+
+                    public decimal GetPercentage(Human customer) =>
+                        IsEligible(customer) ? SeniorDiscountPercentage : 0m;
+                }
+
+                public class OrderDiscountService
+                {
+                    private readonly IDiscountPolicy _discountPolicy;
+
+                    public OrderDiscountService(IDiscountPolicy discountPolicy)
+                    {
+                        _discountPolicy = discountPolicy ?? throw new ArgumentNullException(nameof(discountPolicy));
+                    }
+
+                    public void ApplyCustomerDiscount(Order order, Human customer)
+                    {
+                        if (order is null) throw new ArgumentNullException(nameof(order));
+                        if (customer is null) throw new ArgumentNullException(nameof(customer));
+
+                        if (!_discountPolicy.IsEligible(customer))
+                            return;
+
+                        order.ApplyDiscount(_discountPolicy.GetPercentage(customer));
+                    }
+                }
+
+                public interface IHumanRepository
+                {
+                    Task<Human?> GetByIdAsync(string id);
+                    Task<IReadOnlyList<Human>> GetAllAsync();
+                    Task AddAsync(Human human);
+                    Task UpdateAsync(Human human);
+                    Task DeleteAsync(string id);
+                }
+
+                public interface IOrderRepository
+                {
+                    Task<Order?> GetByIdAsync(Guid id);
+                    Task<IReadOnlyList<Order>> GetByCustomerNameAsync(string customerName);
+                    Task AddAsync(Order order);
+                    Task UpdateAsync(Order order);
+                    Task DeleteAsync(Guid id);
+                }
+
+                public class InMemoryHumanRepository : IHumanRepository
+                {
+                    private readonly Dictionary<string, Human> _store = new();
+
+                    public Task<Human?> GetByIdAsync(string id) =>
+                        Task.FromResult(_store.TryGetValue(id, out var human) ? human : null);
+
+                    public Task<IReadOnlyList<Human>> GetAllAsync() =>
+                        Task.FromResult<IReadOnlyList<Human>>(_store.Values.ToList());
+
+                    public Task AddAsync(Human human)
+                    {
+                        if (!_store.TryAdd(human.Id, human))
+                            throw new InvalidOperationException($""Human {human.Id} already exists."");
+                        return Task.CompletedTask;
+                    }
+
+                    public Task UpdateAsync(Human human)
+                    {
+                        if (!_store.ContainsKey(human.Id))
+                            throw new KeyNotFoundException($""Human {human.Id} not found."");
+                        _store[human.Id] = human;
+                        return Task.CompletedTask;
+                    }
+
+                    public Task DeleteAsync(string id)
+                    {
+                        _store.Remove(id);
+                        return Task.CompletedTask;
+                    }
+                }
+
+                public class InMemoryOrderRepository : IOrderRepository
+                {
+                    private readonly Dictionary<Guid, Order> _store = new();
+
+                    public Task<Order?> GetByIdAsync(Guid id) =>
+                        Task.FromResult(_store.TryGetValue(id, out var order) ? order : null);
+
+                    public Task<IReadOnlyList<Order>> GetByCustomerNameAsync(string customerName) =>
+                        Task.FromResult<IReadOnlyList<Order>>(
+                            _store.Values.Where(o => o.CustomerName == customerName).ToList());
+
+                    public Task AddAsync(Order order)
+                    {
+                        if (!_store.TryAdd(order.Id, order))
+                            throw new InvalidOperationException($""Order {order.Id} already exists."");
+                        return Task.CompletedTask;
+                    }
+
+                    public Task UpdateAsync(Order order)
+                    {
+                        if (!_store.ContainsKey(order.Id))
+                            throw new KeyNotFoundException($""Order {order.Id} not found."");
+                        _store[order.Id] = order;
+                        return Task.CompletedTask;
+                    }
+
+                    public Task DeleteAsync(Guid id)
+                    {
+                        _store.Remove(id);
+                        return Task.CompletedTask;
+                    }
+                }
             ";
 
             ClassStructureInfoList classStructureInfoList = new ClassStructureInfoList();
@@ -160,6 +282,8 @@ namespace GettingStartedCS
                 {
                     var methodInfo = new MethodStructureInfo(method.Identifier.Text, parser.GetMethodReturnType(method));
                     methodInfo.SetIsStatic(parser.IsMethodStatic(method));
+                    var parameters = parser.GetMethodsParameter(method);
+                    methodInfo.SetParameters(parameters);
                     classInfo.AddMethod(methodInfo);
                 }
                 classStructureInfoList.AddClass(classInfo);
@@ -172,7 +296,9 @@ namespace GettingStartedCS
                DomainModelIdentifier.IdentifyDomainModels(c, classStructureInfoList, domainModelList);
             }
 
-            foreach(var domainModel in domainModelList.DomainModels)
+            // TODO: make algorithm to identify aggregates by analyzing the relationships between domain models and other domain models
+
+            foreach (var domainModel in domainModelList.DomainModels)
             {
                 Console.WriteLine($"Domain Model: {domainModel.Name} ({domainModel.DomainType})");
                 var validator = ValidatorFactory.GetValidator(domainModel);

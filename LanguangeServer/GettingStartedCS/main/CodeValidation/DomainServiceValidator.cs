@@ -14,7 +14,7 @@ namespace GettingStartedCS.main.CodeValidation
             StructureInfo.DomainService service = (StructureInfo.DomainService)domainModel;
             bool c10 = ValidateConstraintC10(service);
             bool c11 = ValidateConstraintC11(service);
-            if(!c10)
+            if(c10)
             {
                 vlist.AddViolation(new Violation(
                     service.Name,
@@ -33,7 +33,11 @@ namespace GettingStartedCS.main.CodeValidation
         }
         public bool ValidateConstraintC10(StructureInfo.DomainService service)
         {
-            return service.HasProperties;
+            if(service.ClassInfo == null)
+            {
+                return false;
+            }
+            return service.ClassInfo.Properties.Count == 0;
         }
         public bool ValidateConstraintC11(StructureInfo.DomainService service)
         {

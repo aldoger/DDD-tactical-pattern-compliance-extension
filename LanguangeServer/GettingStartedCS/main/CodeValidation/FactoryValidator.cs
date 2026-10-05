@@ -43,7 +43,8 @@ namespace GettingStartedCS.main.CodeValidation
                 {
                     return false;
                 }
-                if(domainModel is not StructureInfo.Entity && domainModel is not StructureInfo.ValueObject && domainModel is not StructureInfo.Aggregate)
+                // Aggregate maybe must be a root not part
+                if(domainModel is not Entity && domainModel is not ValueObject && domainModel is not Aggregate)
                 {
                     return false;
                 }

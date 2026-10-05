@@ -27,5 +27,13 @@ namespace GettingStartedCS.Util
         {
             return classInfo.ClassName.Contains("Factory", StringComparison.OrdinalIgnoreCase);
         }
+        public static bool IsClassNameContaineRepository(ClassStructureInfo classInfo)
+        {
+            return classInfo.ClassName.Contains("Repository", StringComparison.OrdinalIgnoreCase);
+        }
+        public static bool IsClassNameContaineService(ClassStructureInfo classInfo)
+        {
+            return classInfo.ClassName.Contains("Service", StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

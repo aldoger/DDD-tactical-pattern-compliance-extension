@@ -39,14 +39,20 @@ namespace GettingStartedCS.main.StructureInfo
         public string MethodName;
         public bool IsStatic;
         public string ReturnType;
+        public List<ParameterStructureInfo> Parameters;
         public void SetIsStatic(bool isStatic)
         {
             IsStatic = isStatic;
+        }
+        public void SetParameters(List<ParameterStructureInfo> parameters)
+        {
+            Parameters = parameters;
         }
         public MethodStructureInfo(string methodName, string returnType)
         {
             MethodName = methodName;
             ReturnType = returnType;
+            Parameters = new List<ParameterStructureInfo>();
         }
     }
 

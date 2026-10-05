@@ -41,11 +41,11 @@ namespace GettingStartedCS.main.StructureInfo
     }
     public class DomainService : DomainModelStruct
     {
-        public bool HasProperties;
-        public DomainService(string name, bool hasProperties)
+        public ClassStructureInfo? ClassInfo;
+        public DomainService(string name, ClassStructureInfo? classInfo)
             : base(name, "Domain Service")
         {
-            HasProperties = hasProperties;
+            ClassInfo = classInfo;
         }
     }
     public class DomainEvent : DomainModelStruct
@@ -88,11 +88,11 @@ namespace GettingStartedCS.main.StructureInfo
     }
     public class Repository : DomainModelStruct
     {
-        public bool HasProperties;
-        public Repository(string name, bool hasProperties)
+        public ClassStructureInfo? ClassInfo;
+        public Repository(string name, ClassStructureInfo classInfo)
             : base(name, "Repository")
         {
-            HasProperties = hasProperties;
+            ClassInfo = classInfo;
         }
     }
     public class Aggregate : DomainModelStruct

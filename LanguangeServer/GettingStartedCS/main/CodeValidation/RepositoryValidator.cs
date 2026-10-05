@@ -1,4 +1,5 @@
 ﻿using GettingStartedCS.main.IdentifyDomainModel;
+using GettingStartedCS.main.StructureInfo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +13,9 @@ namespace GettingStartedCS.main.CodeValidation
         public override void Validate(StructureInfo.DomainModelStruct domainModel, ViolationList vlist, DomainModelList domainList)
         {
             StructureInfo.Repository repository = (StructureInfo.Repository)domainModel;
-            bool c12 = ValidateConstrainC12(repository);
+            bool c12 = ValidateConstrainC12(repository, domainList);
             bool c13 = ValidateConstraintC13(repository);
-            bool c14 = ValidateConstraintC14(repository );
+            bool c14 = ValidateConstraintC14(repository);
             if (!c12)
             {
                 vlist.AddViolation(new Violation(
@@ -40,14 +41,33 @@ namespace GettingStartedCS.main.CodeValidation
                 );
             }
         }
-        public bool ValidateConstrainC12(StructureInfo.Repository repository)
+        public bool ValidateConstrainC12(StructureInfo.Repository repository, DomainModelList domainList)
         {
             // TODO: Access method parameter and get the parameter type
+            foreach(var method in repository.ClassInfo.Methods)
+            {
+                foreach (var parameter in method.Parameters)
+                {
+                    var domainModel = domainList.GetDomainModel(parameter.ParameterType);
+                    if(domainModel == null)
+                    {
+                        return false;
+                    }
+                    if(domainModel is not Entity && domainModel is not ValueObject && domainModel is not Aggregate)
+                    {
+                        return false;
+                    }
+                }
+            }
             return true;   
         }
         public bool ValidateConstraintC13(StructureInfo.Repository repository)
         {
-            return repository.HasProperties;
+            if(repository == null)
+            {
+                return false;
+            }
+            return repository.ClassInfo.Properties.Count == 0;
         }
         public bool ValidateConstraintC14(StructureInfo.Repository repository)
         {
