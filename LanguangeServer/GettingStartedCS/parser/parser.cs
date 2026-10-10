@@ -7,6 +7,7 @@ using System.Linq;
 
 namespace GettingStartedCS.parser
 {
+    using GettingStartedCS.main.StructureInfo;
     public class Parser
     {
         private SyntaxTree tree;
@@ -57,6 +58,16 @@ namespace GettingStartedCS.parser
         public string GetPropertyType(PropertyDeclarationSyntax classProperty)
         {
             return classProperty.Type.ToString();
+        }
+        public string? GetBaseClassName(ClassDeclarationSyntax classDeclaration)
+        {
+            var baseType = classDeclaration.BaseList?.Types.FirstOrDefault();
+            return baseType?.Type.ToString();
+        }
+        public List<string> GetClassInterfaceName(ClassDeclarationSyntax classDeclaration)
+        {
+            var interfaceTypes = classDeclaration.BaseList?.Types.Where(t => t.Type is IdentifierNameSyntax id && id.Identifier.Text.StartsWith("I"));
+            return interfaceTypes?.Select(t => t.Type.ToString()).ToList() ?? new List<string>();
         }
         public bool IsPropertyImmutable(PropertyDeclarationSyntax classProperty)
         {

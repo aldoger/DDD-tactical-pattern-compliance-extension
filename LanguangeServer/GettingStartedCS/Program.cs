@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Host;
 
 namespace GettingStartedCS
 {
@@ -21,7 +19,7 @@ namespace GettingStartedCS
             string input = @"
                 public class Human
                 {
-                    public string Id { get; set; }
+                    public Guid Id { get; set; }
                     public string Name { get; set; }
                     public int Age { get; set; }
 
@@ -295,6 +293,8 @@ namespace GettingStartedCS
             {
                DomainModelIdentifier.IdentifyDomainModels(c, classStructureInfoList, domainModelList);
             }
+
+            // TODO: make algorithm to identify publisher and subscriber from domain events
 
             // TODO: make algorithm to identify aggregates by analyzing the relationships between domain models and other domain models
 

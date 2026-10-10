@@ -15,7 +15,7 @@ namespace GettingStartedCS.main.CodeValidation
             StructureInfo.Repository repository = (StructureInfo.Repository)domainModel;
             bool c12 = ValidateConstrainC12(repository, domainList);
             bool c13 = ValidateConstraintC13(repository);
-            bool c14 = ValidateConstraintC14(repository);
+            bool c14 = ValidateConstraintC14(repository, domainList);
             if (!c12)
             {
                 vlist.AddViolation(new Violation(
@@ -43,12 +43,11 @@ namespace GettingStartedCS.main.CodeValidation
         }
         public bool ValidateConstrainC12(StructureInfo.Repository repository, DomainModelList domainList)
         {
-            // TODO: Access method parameter and get the parameter type
             foreach(var method in repository.ClassInfo.Methods)
             {
                 foreach (var parameter in method.Parameters)
                 {
-                    var domainModel = domainList.GetDomainModel(parameter.ParameterType);
+                    var domainModel = domainList.GetDomainModelFirst(parameter.ParameterType);
                     if(domainModel == null)
                     {
                         return false;
@@ -69,9 +68,13 @@ namespace GettingStartedCS.main.CodeValidation
             }
             return repository.ClassInfo.Properties.Count == 0;
         }
-        public bool ValidateConstraintC14(StructureInfo.Repository repository)
+        public bool ValidateConstraintC14(StructureInfo.Repository repository, DomainModelList domainList)
         {
-            // Still confused C14
+            var domainModels = domainList.GetDomainModel(repository.Name);
+            if (domainModels == null || domainModels.Count == 0)
+            {
+                return false;
+            }
             return true;
         }
     }

@@ -13,7 +13,7 @@ namespace GettingStartedCS.main.CodeValidation
         {
             StructureInfo.DomainService service = (StructureInfo.DomainService)domainModel;
             bool c10 = ValidateConstraintC10(service);
-            bool c11 = ValidateConstraintC11(service);
+            bool c11 = ValidateConstraintC11(service, domainList);
             if(c10)
             {
                 vlist.AddViolation(new Violation(
@@ -39,9 +39,13 @@ namespace GettingStartedCS.main.CodeValidation
             }
             return service.ClassInfo.Properties.Count == 0;
         }
-        public bool ValidateConstraintC11(StructureInfo.DomainService service)
+        public bool ValidateConstraintC11(StructureInfo.DomainService service, DomainModelList domainModelList)
         {
-            // Still confuse
+            var domainModels = domainModelList.GetDomainModel(service.Name);
+            if(domainModels == null || domainModels.Count == 0)
+            {
+                return false;
+            }
             return true;
         }
     }

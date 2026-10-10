@@ -24,7 +24,7 @@ namespace GettingStartedCS.main.CodeValidation
                 );
             }
 
-            if (c2)
+            if (!c2)
             {
                 vlist.AddViolation(
                     new Violation(
@@ -43,12 +43,11 @@ namespace GettingStartedCS.main.CodeValidation
 
         public bool ValidateConstraintC2(StructureInfo.Entity entity)
         {
-            var idProperty = entity.Properties.FirstOrDefault(p =>
-                p.PropertyName.Contains("Id", StringComparison.OrdinalIgnoreCase));
+            var countIdProperties = entity.Properties.Count(
+                p => string.Equals(p.PropertyName, "Id", StringComparison.OrdinalIgnoreCase)
+            );
 
-            if (idProperty == null) return false;
-
-            return !idProperty.IsReadOnly;
+            return countIdProperties >= 1;
         }
     }
 }

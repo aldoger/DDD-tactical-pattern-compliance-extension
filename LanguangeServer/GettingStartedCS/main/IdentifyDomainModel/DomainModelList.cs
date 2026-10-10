@@ -20,7 +20,12 @@ namespace GettingStartedCS.main.IdentifyDomainModel
         {
             return DomainModels.Any(dm => dm.Name == name);
         }
-        public DomainModelStruct? GetDomainModel(string name)
+        public List<DomainModelStruct>? GetDomainModel(string name)
+        {
+            var domainModel = DomainModels.Where(dm => dm.Name == name).ToList();
+            return domainModel;
+        }
+        public DomainModelStruct? GetDomainModelFirst(string name)
         {
             var domainModel = DomainModels.FirstOrDefault(dm => dm.Name == name);
             return domainModel;

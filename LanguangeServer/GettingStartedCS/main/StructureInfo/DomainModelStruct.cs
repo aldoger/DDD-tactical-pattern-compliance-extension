@@ -97,9 +97,16 @@ namespace GettingStartedCS.main.StructureInfo
     }
     public class Aggregate : DomainModelStruct
     {
-        public Aggregate(string name)
+        public ClassStructureInfo? ClassInfo;
+        public string AggregateType;
+        public void SetAggregateType(string aggregateType)
+        {
+            AggregateType = aggregateType;
+        }
+        public Aggregate(string name, ClassStructureInfo classInfo)
             : base(name, "Aggregate")
         {
+            ClassInfo = classInfo;
         }
     }
 }

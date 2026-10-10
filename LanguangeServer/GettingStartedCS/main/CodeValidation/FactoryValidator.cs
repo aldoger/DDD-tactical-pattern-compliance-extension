@@ -9,7 +9,7 @@ namespace GettingStartedCS.main.CodeValidation
         {
             StructureInfo.Factory factory = (StructureInfo.Factory)domainModel;
             bool c15 = ValidateConstraintC15(factory, domainList);
-            bool c16 = ValidateConstraintC16(factory);
+            bool c16 = ValidateConstraintC16(factory, domainList);
             if (!c15)
             {
                 vlist.AddViolation(new Violation(
@@ -38,7 +38,7 @@ namespace GettingStartedCS.main.CodeValidation
             foreach(var method in factoryClassInfo.Methods)
             {
                 var returnType = method.ReturnType;
-                DomainModelStruct? domainModel = domainList.GetDomainModel(returnType);
+                DomainModelStruct? domainModel = domainList.GetDomainModelFirst(returnType);
                 if (domainModel == null)
                 {
                     return false;
@@ -51,9 +51,13 @@ namespace GettingStartedCS.main.CodeValidation
             }
             return true;
         }
-        public bool ValidateConstraintC16(StructureInfo.Factory factory)
+        public bool ValidateConstraintC16(StructureInfo.Factory factory, DomainModelList domainList)
         {
-            // Still confused
+            var domainModels = domainList.GetDomainModel(factory.Name);
+            if(domainModels == null || domainModels.Count == 0)
+            {
+                return false;
+            }
             return true;
         }
     }

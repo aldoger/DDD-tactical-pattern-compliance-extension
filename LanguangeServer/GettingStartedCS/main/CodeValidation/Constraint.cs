@@ -80,12 +80,24 @@ namespace GettingStartedCS.main.CodeValidation
                     return "15. A factory needs to specify the object that it creates. The type of the object can be entity,value object, and aggregate root.";
                 case Constraint.CONSTRAINT_16:
                     return "16. A factory should not be designed as other patterns at the same time.";
+                case Constraint.CONSTRAINT_17:
+                    return "17. The root of an aggregate can only be designed as an entity.";
+                case Constraint.CONSTRAINT_18:
+                    return "18. The aggregate part can only be designed as an entity or a value object.";
+                case Constraint.CONSTRAINT_19:
+                    return "19. The reference of an aggregate part cannot be held by the outside objects";
+                case Constraint.CONSTRAINT_20:
+                    return "20. An aggregate has one and only one aggregate root.";
+                case Constraint.CONSTRAINT_21:
+                    return "21. Except the aggregate root, an aggregate can only contain aggregate parts.";
+                case Constraint.CONSTRAINT_22:
+                    return "22. The creation of an aggregate should be done by a factory.";
+                case Constraint.CONSTRAINT_23:
+                    return "23. The accessing of an aggregate should be done by a repository.";
+                case Constraint.CONSTRAINT_24:
+                    return "24. The objects within an aggregate should not be crosscutting different bounded contexts.";
                 default:
-                    throw new System.ArgumentOutOfRangeException(
-                        nameof(constraint),
-                        constraint,
-                        null
-                    );
+                    return "";
             }
         }
     }
