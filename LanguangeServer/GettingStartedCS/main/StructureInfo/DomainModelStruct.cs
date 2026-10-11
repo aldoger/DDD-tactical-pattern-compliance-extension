@@ -19,24 +19,20 @@ namespace GettingStartedCS.main.StructureInfo
     }
     public class Entity : DomainModelStruct
     {
-        public bool HasIdProperty;
-        public List<PropertyStructureInfo> Properties { get; }
-        public Entity(string name, List<PropertyStructureInfo> properties, bool hasIdProperty)
+        public ClassStructureInfo? ClassInfo;
+        public Entity(string name, ClassStructureInfo classInfo)
             : base(name, "Entity")
         {
-            Properties = properties;
-            HasIdProperty = hasIdProperty;
+            ClassInfo = classInfo;
         }
     }
     public class ValueObject : DomainModelStruct
     {
-        public bool HasIdProperty;
-        public List<PropertyStructureInfo> Properties { get; }
-        public ValueObject(string name, List<PropertyStructureInfo> properties, bool hasIdProperty)
+        public ClassStructureInfo? ClassInfo;
+        public ValueObject(string name, ClassStructureInfo classInfo)
             : base(name, "Value Object")
         {
-            Properties = properties;
-            HasIdProperty = hasIdProperty;
+            ClassInfo = classInfo;
         }
     }
     public class DomainService : DomainModelStruct
@@ -50,20 +46,15 @@ namespace GettingStartedCS.main.StructureInfo
     }
     public class DomainEvent : DomainModelStruct
     {
-        public bool HasIdProperty;
-        public bool IsReadOnly;
-        public List<PropertyStructureInfo> Properties { get; }
-        public DomainEvent(string name, List<PropertyStructureInfo> properties, bool hasIdProperty, bool isReadOnly)
+        public ClassStructureInfo? ClassInfo;
+        public DomainEvent(string name, ClassStructureInfo? classInfo)
             : base(name, "Domain Event")
         {
-            Properties = properties;
-            HasIdProperty = hasIdProperty;
-            IsReadOnly = isReadOnly;
+            ClassInfo = classInfo;
         }
     }
     public class Factory : DomainModelStruct
     {
-        public bool HasProperties;
         public bool IsClass;
         public bool IsMethod;
         public ClassStructureInfo? ClassInfo;
@@ -80,10 +71,10 @@ namespace GettingStartedCS.main.StructureInfo
             IsClass = false;
             IsMethod = true;
         }
-        public Factory(string name, bool hasProperties)
+        public Factory(string name)
             : base(name, "Factory")
         {
-            HasProperties = hasProperties;
+
         }
     }
     public class Repository : DomainModelStruct

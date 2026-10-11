@@ -1,14 +1,22 @@
-﻿using GettingStartedCS.main.IdentifyDomainModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GettingStartedCS.main.Identifier;
+using GettingStartedCS.main.StructureInfo;
+using GettingStartedCS.parser;
 
 namespace GettingStartedCS.main.CodeValidation
 {
     public abstract class DomainObjectValidate
     {
-        public abstract void Validate(StructureInfo.DomainModelStruct classInfo, ViolationList vlist, DomainModelList domainList);
+        protected Parser parser;
+
+        public DomainObjectValidate(Parser par)
+        {
+            parser = par;
+        }
+
+        public abstract void Validate(
+            DomainModelStruct classInfo,
+            ViolationList vlist,
+            DomainModelList domainList
+        );
     }
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GettingStartedCS.main.IdentifyDomainModel
+namespace GettingStartedCS.main.Identifier
 {
     using GettingStartedCS.main.StructureInfo;
     public class DomainModelList

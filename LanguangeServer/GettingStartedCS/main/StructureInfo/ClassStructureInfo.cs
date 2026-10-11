@@ -1,4 +1,6 @@
-﻿using System;
+﻿using GettingStartedCS.main.Identifier;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,70 +8,58 @@ using System.Threading.Tasks;
 
 namespace GettingStartedCS.main.StructureInfo
 {
-    public class PropertyStructureInfo
-    {
-        public string PropertyName;
-        public string PropertyType;
-        public bool IsReadOnly;
-        public void SetIsReadOnly(bool readOnly)
-        {
-            IsReadOnly = readOnly;
-        }
-        public PropertyStructureInfo(string propertyName, string propertyType, bool readOnly)
-        {
-            PropertyName = propertyName;
-            PropertyType = propertyType;
-            IsReadOnly = readOnly;
-        }
-    }
-
-    public class ParameterStructureInfo
-    {
-        public string ParameterName;
-        public string ParameterType;   
-        public ParameterStructureInfo(string parameterName, string parameterType)
-        {
-            ParameterName = parameterName;
-            ParameterType = parameterType;
-        }
-    }
-
     public class MethodStructureInfo
     {
         public string MethodName;
+        public MethodDeclarationSyntax MethodDeclaration;
         public bool IsStatic;
-        public string ReturnType;
-        public List<ParameterStructureInfo> Parameters;
+        public string? ReturnType;
+        public List<MethodStereotype> Stereotype =  new();
+        public MethodFacts? Facts;
         public void SetIsStatic(bool isStatic)
         {
             IsStatic = isStatic;
         }
-        public void SetParameters(List<ParameterStructureInfo> parameters)
+        public void SetReturnType(string? returnType)
         {
-            Parameters = parameters;
+            ReturnType = returnType;
         }
-        public MethodStructureInfo(string methodName, string returnType)
+        public void AddStereotype(MethodStereotype stereotype)
+        {
+            if (!Stereotype.Contains(stereotype))
+                Stereotype.Add(stereotype);
+        }
+        public MethodStructureInfo(string methodName, MethodDeclarationSyntax methodDeclarationSyntax)
         {
             MethodName = methodName;
-            ReturnType = returnType;
-            Parameters = new List<ParameterStructureInfo>();
+            MethodDeclaration = methodDeclarationSyntax;
+        }
+
+        public void Analyze(ClassMemberContext cls, MethodAnalysisOptions? options = null)
+        {
+            Facts = MethodFactsExtractor.Extract(MethodDeclaration, cls, options);
+            SetIsStatic(Facts.IsStatic);
+            SetReturnType(Facts.ReturnType);
+
+            Stereotype.Clear();
+            foreach (var s in MethodStereotypeClassifier.Classify(Facts))
+                AddStereotype(s);
         }
     }
 
     public class ClassStructureInfo
     {
         public string ClassName;
-        public string BaseClassName;
+        public ClassDeclarationSyntax ClassDeclaration; 
+        public string? BaseClassName;
         public bool HasConstructor;
-        public List<PropertyStructureInfo> Properties;
-        public List<MethodStructureInfo> Methods;
         public bool IsStatic;
-        public bool IsImmutable;
-        public void AddProperty(PropertyStructureInfo property)
-        {
-            Properties.Add(property);
-        }
-
+        public int TotalAccesor;
+        public int TotalMutator;
+        public int TotalCollaborator;
+        public bool HasFactoryMethods;
+        public List<MethodStructureInfo> Methods;
+        public List<ClassStereotype> Stereotype = new();
         public void AddMethod(MethodStructureInfo method)
         {
             Methods.Add(method);
@@ -77,10 +67,6 @@ namespace GettingStartedCS.main.StructureInfo
         public void SetHasConstructor(bool hasConstructor)
         {
             HasConstructor = hasConstructor;
-        }
-        public void SetIsImmutable(bool isImmutable)
-        {
-            IsImmutable = isImmutable;
         }
         public void SetBaseClassName(string baseClassName)
         {
@@ -90,12 +76,15 @@ namespace GettingStartedCS.main.StructureInfo
         {
             IsStatic = isStatic;
         }
-
-        public ClassStructureInfo(string className)
+        public void AddStereotype(ClassStereotype stereotype)
+        {
+            Stereotype.Add(stereotype);
+        }
+        public ClassStructureInfo(string className, string? baseClass, ClassDeclarationSyntax classDeclarationSyntax)
         {
             ClassName = className;
-            BaseClassName = string.Empty;
-            Properties = new List<PropertyStructureInfo>();
+            ClassDeclaration = classDeclarationSyntax;
+            BaseClassName = baseClass;
             Methods = new List<MethodStructureInfo>();
         }
     }
