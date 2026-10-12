@@ -44,15 +44,19 @@ namespace GettingStartedCS.main.Identifier
     {
         Unclassified,
         Entity,
+        MinimalEntity,
         DataProvider,
         Commander,
         Boundary,
         Factory,
         Controller,
-        Degenerate,
         PureController,
+        LargeClass,
         LazyClass,
+        Degenerate,
         DataClass,
+        SmallClass,
+        Empty,
     }
 
     public static class StereotypeExtensions
@@ -94,15 +98,19 @@ namespace GettingStartedCS.main.Identifier
         {
             [ClassStereotype.Unclassified] = "unclassified",
             [ClassStereotype.Entity] = "entity",
+            [ClassStereotype.MinimalEntity] = "minimal-entity",
             [ClassStereotype.DataProvider] = "data-provider",
             [ClassStereotype.Commander] = "commander",
             [ClassStereotype.Boundary] = "boundary",
             [ClassStereotype.Factory] = "factory",
             [ClassStereotype.Controller] = "controller",
             [ClassStereotype.PureController] = "pure-controller",
+            [ClassStereotype.LargeClass] = "large-class",
             [ClassStereotype.LazyClass] = "lazy-class",
             [ClassStereotype.Degenerate] = "degenerate",
             [ClassStereotype.DataClass] = "data-class",
+            [ClassStereotype.SmallClass] = "small-class",
+            [ClassStereotype.Empty] = "empty",
         };
 
         private static readonly Dictionary<string, ClassStereotype> TextToClass =
@@ -131,48 +139,69 @@ namespace GettingStartedCS.main.Identifier
             s is MethodStereotype.Incidental or MethodStereotype.Stateless
               or MethodStereotype.Empty;
     }
-    
-    public sealed record EntityRules
-    {
-        public bool ForbidControllers { get; init; } = true;
 
-        public double? MinCollaboratorRatio { get; init; } = null;
+    public sealed record ClassThresholds
+    {
+        // indicates for large class
+        public int MethodsPerClassThreshold { get; init; } = 40;
     }
 
     public readonly record struct MethodCounts(
-       int Getters, int Accessors,
-       int Setters, int Commands,
-       int Controllers, int Collaborators,
-       int Factories, int NonCollaborators)
+        int Getters, int Accessors,
+        int Setters, int Commands,
+        int Controllers, int Collaborators,
+        int Factories, int NonCollaborators,
+        int Degenerates, int AllMethods)
     {
         public int Mutators => Setters + Commands;
         public int NonGetAccessors => Accessors - Getters;
-        public int NonSetMutators => Mutators - Setters; 
+        public int NonSetMutators => Mutators - Setters;
+
+        // collaborator + wrapper only (Collaborators here already includes controllers)
+        public int CollaboratorsOnly => Collaborators - Controllers;
     }
 
     public class ClassStereotypeIdentifier
     {
-        private readonly EntityRules _entityRules;
-        public ClassStereotypeIdentifier() 
+        private readonly ClassThresholds _thresholds;
+
+        public ClassStereotypeIdentifier() : this(new ClassThresholds()) { }
+
+        public ClassStereotypeIdentifier(ClassThresholds thresholds)
         {
-            _entityRules = new EntityRules();
+            _thresholds = thresholds;
         }
+
         public void IdentifyStereotype(ClassStructureInfo classStructure)
         {
-            MethodCounts counts = CountMethods(classStructure);
+            MethodCounts c = CountMethods(classStructure);
 
             // Keep the summary fields on the class info in sync
-            classStructure.TotalAccesor = counts.Accessors;
-            classStructure.TotalMutator = counts.Mutators;
-            classStructure.TotalCollaborator = counts.Collaborators;
-            classStructure.HasFactoryMethods = counts.Factories > 0;
+            classStructure.TotalAccesor = c.Accessors;
+            classStructure.TotalMutator = c.Mutators;
+            classStructure.TotalCollaborator = c.Collaborators;
+            classStructure.HasFactoryMethods = c.Factories > 0;
 
-            if (IsEntity(counts))
-                AddOnce(classStructure, ClassStereotype.Entity);
+            if (IsEntity(c)) AddOnce(classStructure, ClassStereotype.Entity);
+            if (IsMinimalEntity(c)) AddOnce(classStructure, ClassStereotype.MinimalEntity);
+            if (IsDataProvider(c)) AddOnce(classStructure, ClassStereotype.DataProvider);
+            if (IsCommander(c)) AddOnce(classStructure, ClassStereotype.Commander);
+            if (IsBoundary(c)) AddOnce(classStructure, ClassStereotype.Boundary);
+            if (IsFactory(c)) AddOnce(classStructure, ClassStereotype.Factory);
+            if (IsController(c)) AddOnce(classStructure, ClassStereotype.Controller);
+            if (IsPureController(c)) AddOnce(classStructure, ClassStereotype.PureController);
+            if (IsLargeClass(c)) AddOnce(classStructure, ClassStereotype.LargeClass);
+            if (IsLazyClass(c)) AddOnce(classStructure, ClassStereotype.LazyClass);
+            if (IsDegenerate(c)) AddOnce(classStructure, ClassStereotype.Degenerate);
+            if (IsDataClass(c)) AddOnce(classStructure, ClassStereotype.DataClass);
+            if (IsSmallClass(c)) AddOnce(classStructure, ClassStereotype.SmallClass);
+            if (IsEmpty(c)) AddOnce(classStructure, ClassStereotype.Empty);
 
             if (classStructure.Stereotype.Count == 0)
                 AddOnce(classStructure, ClassStereotype.Unclassified);
         }
+
+        // ---------------- class rules ----------------
 
         private bool IsEntity(MethodCounts c)
         {
@@ -181,54 +210,119 @@ namespace GettingStartedCS.main.Identifier
             if (c.NonGetAccessors == 0 || c.NonSetMutators == 0)
                 return false;
 
-            // Optional: controllers disqualify unless explicitly allowed
-            if (_entityRules.ForbidControllers && c.Controllers > 0)
+            if (c.Controllers > 0)
                 return false;
 
-            // Optional: collaborator ratio
-            if (_entityRules.MinCollaboratorRatio is double minRatio)
-            {
-                double ratio = c.NonCollaborators == 0
-                    ? (c.Collaborators > 0 ? double.PositiveInfinity : 0)
-                    : (double)c.Collaborators / c.NonCollaborators;
-
-                if (ratio < minRatio)
-                    return false;
-            }
-
-            // Factory methods never block an Entity, so they are not checked here.
+            // Minimum ratio is 0 by default, so this never blocks unless configured.
             return true;
         }
+
+        private bool IsMinimalEntity(MethodCounts c)
+        {
+            // Only getters, setters and commands; each at least once.
+            if (c.AllMethods - (c.Getters + c.Setters + c.Commands) != 0) return false;
+            if (c.Getters == 0 || c.Setters == 0 || c.Commands == 0) return false;
+
+            return true;
+        }
+
+        // Modified: only requires that accessors and factories both exist.
+        private bool IsDataProvider(MethodCounts c)
+            => c.Accessors > 0 && c.Factories > 0;
+
+        private bool IsCommander(MethodCounts c)
+            => (c.Mutators > 2 * c.Accessors) && (c.Mutators > 2 * (c.Controllers + c.Factories));
+
+        private bool IsBoundary(MethodCounts c)
+            => (c.Collaborators > c.NonCollaborators)
+            && (c.Factories < 0.5 * c.AllMethods)
+            && (c.Controllers < 0.33 * c.AllMethods);
+
+        private bool IsFactory(MethodCounts c)
+            => c.Factories > 0.67 * c.AllMethods;
+
+        private bool IsController(MethodCounts c)
+            => (c.Controllers + c.Factories > 0.67 * c.AllMethods)
+            && (c.Accessors != 0 || c.Mutators != 0);
+
+        private bool IsPureController(MethodCounts c)
+            => (c.Controllers + c.Factories != 0)
+            && (c.Accessors + c.Mutators + c.CollaboratorsOnly == 0)
+            && (c.Controllers != 0);
+
+        private bool IsLargeClass(MethodCounts c)
+        {
+            int accPlusMut = c.Accessors + c.Mutators;
+            int facPlusCon = c.Controllers + c.Factories;
+
+            bool balanced =
+                (0.2 * c.AllMethods < accPlusMut) && (accPlusMut < 0.67 * c.AllMethods) &&
+                (0.2 * c.AllMethods < facPlusCon) && (facPlusCon < 0.67 * c.AllMethods) &&
+                c.Factories != 0 && c.Controllers != 0 && c.Accessors != 0 && c.Mutators != 0;
+
+            return balanced && c.AllMethods > _thresholds.MethodsPerClassThreshold;
+        }
+
+        private bool IsLazyClass(MethodCounts c)
+        {
+            if (c.AllMethods == 0) return false;
+
+            double degenerateRatio = c.Degenerates / (double)c.AllMethods;
+            double otherRatio = (c.AllMethods - (c.Degenerates + c.Getters + c.Setters)) / (double)c.AllMethods;
+
+            return (c.Getters + c.Setters != 0) && degenerateRatio > 0.33 && otherRatio <= 0.2;
+        }
+
+        private bool IsDegenerate(MethodCounts c)
+            => c.AllMethods > 0 && (c.Degenerates / (double)c.AllMethods) > 0.5;
+
+        private bool IsDataClass(MethodCounts c)
+            => (c.AllMethods - (c.Getters + c.Setters) == 0) && (c.Getters + c.Setters != 0);
+
+        private bool IsSmallClass(MethodCounts c)
+            => c.AllMethods > 0 && c.AllMethods < 3;
+
+        private bool IsEmpty(MethodCounts c)
+            => c.AllMethods == 0;
+
+        // ---------------- counting ----------------
 
         private static MethodCounts CountMethods(ClassStructureInfo cls)
         {
             int getters = 0, accessors = 0, setters = 0, commands = 0;
             int controllers = 0, collaborators = 0, factories = 0, nonCollaborators = 0;
+            int degenerates = 0, allMethods = 0;
 
-            foreach(MethodStructureInfo method in cls.Methods)
+            foreach (MethodStructureInfo method in cls.Methods)
             {
-                var stereotypes = method.Stereotype;   
+                var stereotypes = method.Stereotype;
 
+                // Constructors / destructors are not part of class stereotype computation
                 if (stereotypes.Any(s => s is MethodStereotype.Constructor
                                            or MethodStereotype.CopyConstructor
                                            or MethodStereotype.Destructor)) continue;
 
+                allMethods++;   // = methods.Count - constructor/destructor count
 
                 foreach (MethodStereotype s in stereotypes)
                 {
                     if (s == MethodStereotype.Get) getters++;
-                    if (s.IsAccessor()) accessors++;
+                    if (s.IsAccessor()) accessors++;            // get + predicate + property + void-accessor
                     if (s == MethodStereotype.Set) setters++;
                     if (s is MethodStereotype.Command or MethodStereotype.NonVoidCommand) commands++;
                     if (s == MethodStereotype.Controller) controllers++;
-                    if (s.IsCollaborator()) collaborators++;
+                    if (s.IsCollaborator()) collaborators++;    // controller + collaborator + wrapper
                     if (s == MethodStereotype.Factory) factories++;
+                    if (s.IsDegenerate()) degenerates++;        // incidental + stateless + empty
                 }
+
                 if (!stereotypes.Any(s => s.IsCollaborator()))
                     nonCollaborators++;
-
             }
-            return new MethodCounts(getters, accessors, setters, commands, controllers, collaborators, factories, nonCollaborators);
+
+            return new MethodCounts(getters, accessors, setters, commands,
+                                    controllers, collaborators, factories, nonCollaborators,
+                                    degenerates, allMethods);
         }
 
         private static void AddOnce(ClassStructureInfo cls, ClassStereotype s)

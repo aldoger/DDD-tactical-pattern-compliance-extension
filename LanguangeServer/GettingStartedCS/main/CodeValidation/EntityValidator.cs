@@ -42,10 +42,10 @@ namespace GettingStartedCS.main.CodeValidation
         public bool ValidateConstraintC1(Entity entity)
         {
             if (entity.ClassInfo == null) return false;
-            var properties = parser.GetCProperties(entity.ClassInfo.ClassDeclaration);
+            var properties = parser.GetProperties(entity.ClassInfo.ClassDeclaration);
             foreach(var property in properties)
             {
-                if (Util.Util.ContainsId(property.Identifier.Text)) return true;
+                if(Util.Util.ContainsId(property.Identifier.Text)) return true;
             }
             return false;
         }
@@ -54,10 +54,10 @@ namespace GettingStartedCS.main.CodeValidation
         {
             var countPropertyId = 0;
             if (entity.ClassInfo == null) return false;
-            var properties = parser.GetCProperties(entity.ClassInfo.ClassDeclaration);
+            var properties = parser.GetProperties(entity.ClassInfo.ClassDeclaration);
             foreach (var property in properties)
             {
-                if (Util.Util.ContainsId(property.Identifier.Text)) countPropertyId++;
+                if(Util.Util.ContainsId(property.Identifier.Text)) countPropertyId++;
             }
             return countPropertyId > 0;
         }

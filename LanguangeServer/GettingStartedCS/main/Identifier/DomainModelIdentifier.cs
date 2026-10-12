@@ -22,6 +22,12 @@ namespace GettingStartedCS.main.Identifier
                 domainModelList.AddDomainModel(newEntity);
                 return;
             }
+
+            if (IsValueObject(classStructureInfo.Stereotype))
+            {
+                ValueObject newValueObject = new ValueObject(classStructureInfo.ClassName, classStructureInfo);
+                domainModelList.AddDomainModel(newValueObject);
+            }
         }
 
         public static bool IsEntity(List<ClassStereotype> ls)
@@ -30,6 +36,14 @@ namespace GettingStartedCS.main.Identifier
             if (ls.Contains(ClassStereotype.Entity)) isEntity = true;
             if (ls.Contains(ClassStereotype.Commander)) isEntity = true;
             return isEntity;
+        }
+
+        public static bool IsValueObject(List<ClassStereotype> ls)
+        {
+            var isValueObject = false;
+            if (ls.Contains(ClassStereotype.DataClass)) isValueObject = true;
+            if (ls.Contains(ClassStereotype.DataProvider)) isValueObject = true;
+            return isValueObject;
         }
     }
 }

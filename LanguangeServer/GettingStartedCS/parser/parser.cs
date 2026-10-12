@@ -50,7 +50,7 @@ namespace GettingStartedCS.parser
             return classDeclaration.DescendantNodes().OfType<MethodDeclarationSyntax>();
         }
 
-        public IEnumerable<PropertyDeclarationSyntax> GetCProperties(ClassDeclarationSyntax classDeclare)
+        public IEnumerable<PropertyDeclarationSyntax> GetProperties(ClassDeclarationSyntax classDeclare)
         {
             return classDeclare.DescendantNodes().OfType<PropertyDeclarationSyntax>();
         }
@@ -77,5 +77,31 @@ namespace GettingStartedCS.parser
         {
             return classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword);
         }
+
+        public bool IsPropertyImmutable(PropertyDeclarationSyntax property)
+        {
+            // Expression-bodied properties cannot be assigned through a setter.
+            if (property.ExpressionBody != null)
+                return true;
+
+            var accessors = property.AccessorList?.Accessors;
+
+            if (accessors is null)
+                return false;
+
+            bool hasGetter = accessors.Value.Any(a =>
+                a.IsKind(SyntaxKind.GetAccessorDeclaration));
+
+            bool hasSetter = accessors.Value.Any(a =>
+                a.IsKind(SyntaxKind.SetAccessorDeclaration));
+
+            bool hasInit = accessors.Value.Any(a =>
+                a.IsKind(SyntaxKind.InitAccessorDeclaration));
+
+            // A getter is required, and neither setter nor init accessor is allowed
+            // under a strict getter-only policy.
+            return hasGetter && !hasSetter && !hasInit;
+        }
+
     }
 }

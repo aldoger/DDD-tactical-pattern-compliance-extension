@@ -17,6 +17,88 @@ namespace GettingStartedCS
         static async Task Main(string[] args)
         {
             string input = @"
+                    public class Address
+                    {
+                        public string Street { get; }
+                        public string City { get; }
+                        public string Province { get; }
+                        public string PostalCode { get; }
+                        public string Country { get; }
+ 
+                        // Validation lives here so every instance is always valid.
+                        private Address(string street, string city, string province, string postalCode, string country)
+                        {
+                            if (string.IsNullOrWhiteSpace(street))
+                                throw new ArgumentException(""Street is required."", nameof(street));
+                            if (string.IsNullOrWhiteSpace(city))
+                                throw new ArgumentException(""City is required."", nameof(city));
+                            if (string.IsNullOrWhiteSpace(province))
+                                throw new ArgumentException(""Province is required."", nameof(province));
+                            if (string.IsNullOrWhiteSpace(postalCode))
+                                throw new ArgumentException(""Postal code is required."", nameof(postalCode));
+                            if (string.IsNullOrWhiteSpace(country))
+                                throw new ArgumentException(""Country is required."", nameof(country));
+ 
+                            Street = street.Trim();
+                            City = city.Trim();
+                            Province = province.Trim();
+                            PostalCode = postalCode.Trim();
+                            Country = country.Trim();
+                        }
+ 
+                        // ---------- creational ----------
+                        public static Address Create(string street, string city, string province, string postalCode, string country)
+                        {
+                            return new Address(street, city, province, postalCode, country);
+                        }
+ 
+                        // ""Mutation"" returns a new value instead of changing this one.
+                        public Address WithStreet(string street)
+                        {
+                            return new Address(street, City, Province, PostalCode, Country);
+                        }
+ 
+                        public Address WithCity(string city)
+                        {
+                            return new Address(Street, city, Province, PostalCode, Country);
+                        }
+ 
+                        public Address WithProvince(string province)
+                        {
+                            return new Address(Street, City, province, PostalCode, Country);
+                        }
+ 
+                        public Address WithPostalCode(string postalCode)
+                        {
+                            return new Address(Street, City, Province, postalCode, Country);
+                        }
+ 
+                        public Address WithCountry(string country)
+                        {
+                            return new Address(Street, City, Province, PostalCode, country);
+                        }
+ 
+                        // ---------- accessors ----------
+                        public bool IsInCountry(string country)
+                        {
+                            return string.Equals(Country, country?.Trim(), StringComparison.OrdinalIgnoreCase);
+                        }
+ 
+                        public bool IsInCity(string city)
+                        {
+                            return string.Equals(City, city?.Trim(), StringComparison.OrdinalIgnoreCase);
+                        }
+ 
+                        public string ToSingleLine()
+                        {
+                            return $""{Street}, {City}, {Province} {PostalCode}, {Country}"";
+                        }
+ 
+                        public override string ToString() => ToSingleLine();
+                    }
+                }
+
+
                    public class Human
                     {
                         public Guid Id { get; }
@@ -87,6 +169,8 @@ namespace GettingStartedCS
             // TODO: make algorithm to identify publisher and subscriber from domain events
 
             // TODO: make algorithm to identify aggregates by analyzing the relationships between domain models and other domain models
+
+            Util.Util.PrintStereotypes(classStructureInfoList.Classes);
 
             foreach (var domainModel in domainModelList.DomainModels)
             {
