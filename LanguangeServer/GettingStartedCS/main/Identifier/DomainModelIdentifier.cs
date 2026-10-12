@@ -16,6 +16,13 @@ namespace GettingStartedCS.main.Identifier
             foreach (var m in classStructureInfo.Methods) m.Analyze(cls);
             new ClassStereotypeIdentifier().IdentifyStereotype(classStructureInfo);
 
+            if (IsDomainService(classStructureInfo.Stereotype))
+            {
+                DomainService newDomainService = new DomainService(classStructureInfo.ClassName, classStructureInfo);
+                domainModelList.AddDomainModel(newDomainService);
+                return;
+            }
+
             if (IsEntity(classStructureInfo.Stereotype))
             {
                 Entity newEntity = new Entity(classStructureInfo.ClassName, classStructureInfo);
@@ -34,7 +41,6 @@ namespace GettingStartedCS.main.Identifier
         {
             var isEntity = false;
             if (ls.Contains(ClassStereotype.Entity)) isEntity = true;
-            if (ls.Contains(ClassStereotype.Commander)) isEntity = true;
             return isEntity;
         }
 
@@ -44,6 +50,16 @@ namespace GettingStartedCS.main.Identifier
             if (ls.Contains(ClassStereotype.DataClass)) isValueObject = true;
             if (ls.Contains(ClassStereotype.DataProvider)) isValueObject = true;
             return isValueObject;
+        }
+
+        public static bool IsDomainService(List<ClassStereotype> ls)
+        {
+            var isDomainService = false;
+            if (ls.Contains(ClassStereotype.Boundary)) isDomainService = true;
+            if (ls.Contains(ClassStereotype.Commander)) isDomainService = true;
+            if (ls.Contains(ClassStereotype.PureController)) isDomainService = true;
+            if (ls.Contains(ClassStereotype.Controller)) isDomainService = true;
+            return isDomainService;
         }
     }
 }

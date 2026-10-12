@@ -98,41 +98,207 @@ namespace GettingStartedCS
                     }
                 }
 
-
-                   public class Human
+                public class Human
+                {
+                    public Guid Id { get; }
+                    public string Name { get; private set; }
+                    public int Age { get; private set; }
+                    public Guid? ResidenceId { get; private set; }
+ 
+                    public Human(Guid id, string name, int age)
                     {
-                        public Guid Id { get; }
-                        public string Name { get; private set; }
-                        public int Age { get; private set; }
- 
-                        public Human(Guid id, string name, int age)
-                        {
-                            Id = id;
-                            Name = name;
-                            Age = age;
-                        }
-
-                        public string Introduce()
-                        {
-                            return $""Hello, my name is {Name} and I am {Age} years old."";
-                        }
- 
-                        public bool IsAdult()
-                        {
-                            return Age >= 18;
-                        }
- 
-                        public void UpdateProfile(string name, int age)
-                        {
-                            if (string.IsNullOrWhiteSpace(name))
-                                throw new ArgumentException(""Name is required."", nameof(name));
-                            if (age < 0)
-                                throw new ArgumentOutOfRangeException(nameof(age));
- 
-                            Name = name;
-                            Age = age;
-                        }
+                        Id = id;
+                        Name = name;
+                        Age = age;
                     }
+ 
+                    public string Introduce()
+                    {
+                        return $""Hello, my name is {Name} and I am {Age} years old."";
+                    }
+ 
+                    public bool IsAdult()
+                    {
+                        return Age >= 18;
+                    }
+ 
+                    public bool HasResidence()
+                    {
+                        return ResidenceId.HasValue;
+                    }
+ 
+                    public void UpdateProfile(string name, int age)
+                    {
+                        if (string.IsNullOrWhiteSpace(name))
+                            throw new ArgumentException(""Name is required."", nameof(name));
+                        if (age < 0)
+                            throw new ArgumentOutOfRangeException(nameof(age));
+ 
+                        Name = name;
+                        Age = age;
+                    }
+ 
+                    public void AssignResidence(Guid residenceId)
+                    {
+                        ResidenceId = residenceId;
+                    }
+ 
+                    public void ClearResidence()
+                    {
+                        ResidenceId = null;
+                    }
+                }
+ 
+                public class Residence
+                {
+                    private readonly HashSet<Guid> _residentIds = new();
+ 
+                    public Guid Id { get; }
+                    public Address Address { get; private set; }
+                    public int Capacity { get; }
+                    public Guid? HeadOfHouseholdId { get; private set; }
+                    public IReadOnlyCollection<Guid> ResidentIds => _residentIds;
+ 
+                    public Residence(Guid id, Address address, int capacity)
+                    {
+                        if (capacity <= 0)
+                            throw new ArgumentOutOfRangeException(nameof(capacity), ""Capacity must be greater than zero."");
+ 
+                        Id = id;
+                        Address = address ?? throw new ArgumentNullException(nameof(address));
+                        Capacity = capacity;
+                    }
+ 
+                    public int ResidentCount()
+                    {
+                        return _residentIds.Count;
+                    }
+ 
+                    public bool IsEmpty()
+                    {
+                        return _residentIds.Count == 0;
+                    }
+ 
+                    public bool IsFull()
+                    {
+                        return _residentIds.Count >= Capacity;
+                    }
+ 
+                    public bool HasResident(Guid humanId)
+                    {
+                        return _residentIds.Contains(humanId);
+                    }
+ 
+                    public bool IsHead(Guid humanId)
+                    {
+                        return HeadOfHouseholdId == humanId;
+                    }
+ 
+                    public void ChangeAddress(Address newAddress)
+                    {
+                        Address = newAddress ?? throw new ArgumentNullException(nameof(newAddress));
+                    }
+ 
+                    // The first resident automatically becomes the head of the household.
+                    public void AddResident(Guid humanId)
+                    {
+                        if (IsFull())
+                            throw new InvalidOperationException(""Residence is full."");
+                        if (!_residentIds.Add(humanId))
+                            throw new InvalidOperationException(""Human already lives in this residence."");
+ 
+                        HeadOfHouseholdId ??= humanId;
+                    }
+ 
+                    public void RemoveResident(Guid humanId)
+                    {
+                        if (!HasResident(humanId))
+                            throw new InvalidOperationException(""Human does not live in this residence."");
+                        if (IsHead(humanId) && _residentIds.Count > 1)
+                            throw new InvalidOperationException(""Appoint a new head of household before the current head leaves."");
+ 
+                        _residentIds.Remove(humanId);
+ 
+                        if (IsHead(humanId))
+                            HeadOfHouseholdId = null;
+                    }
+ 
+                    public void AssignHead(Guid humanId)
+                    {
+                        if (!HasResident(humanId))
+                            throw new InvalidOperationException(""Head of household must be a resident."");
+ 
+                        HeadOfHouseholdId = humanId;
+                    }
+                }
+
+                public class ResidencyService
+                {
+                    public void MoveIn(Human human, Residence residence)
+                    {
+                        Require(human, residence);
+ 
+                        if (human.HasResidence())
+                            throw new InvalidOperationException(""Human already has a residence. Use Transfer instead."");
+                        if (residence.IsFull())
+                            throw new InvalidOperationException(""Residence is full."");
+                        if (residence.IsEmpty() && !human.IsAdult())
+                            throw new InvalidOperationException(""The first resident (head of household) must be an adult."");
+ 
+                        residence.AddResident(human.Id);
+                        human.AssignResidence(residence.Id);
+                    }
+ 
+                    public void MoveOut(Human human, Residence residence)
+                    {
+                        Require(human, residence);
+ 
+                        if (human.ResidenceId != residence.Id)
+                            throw new InvalidOperationException(""Human does not live in this residence."");
+ 
+                        // Throws if the head tries to leave while others remain; nothing has changed yet.
+                        residence.RemoveResident(human.Id);
+                        human.ClearResidence();
+                    }
+ 
+                    public void Transfer(Human human, Residence from, Residence to)
+                    {
+                        Require(human, from);
+                        if (to is null) throw new ArgumentNullException(nameof(to));
+ 
+                        if (from.Id == to.Id)
+                            throw new InvalidOperationException(""Source and destination residence are the same."");
+                        if (human.ResidenceId != from.Id)
+                            throw new InvalidOperationException(""Human does not live in the source residence."");
+ 
+                        // Validate the destination first, so we never leave the human homeless on failure.
+                        if (to.IsFull())
+                            throw new InvalidOperationException(""Destination residence is full."");
+                        if (to.IsEmpty() && !human.IsAdult())
+                            throw new InvalidOperationException(""The first resident (head of household) must be an adult."");
+ 
+                        from.RemoveResident(human.Id);
+                        to.AddResident(human.Id);
+                        human.AssignResidence(to.Id);
+                    }
+ 
+                    public void AppointHead(Human human, Residence residence)
+                    {
+                        Require(human, residence);
+ 
+                        if (!human.IsAdult())
+                            throw new InvalidOperationException(""Head of household must be an adult."");
+ 
+                        residence.AssignHead(human.Id);
+                    }
+ 
+                    private static void Require(Human human, Residence residence)
+                    {
+                        if (human is null) throw new ArgumentNullException(nameof(human));
+                        if (residence is null) throw new ArgumentNullException(nameof(residence));
+                    }
+                }
+
 
             ";
 

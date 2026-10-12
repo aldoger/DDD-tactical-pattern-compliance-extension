@@ -24,21 +24,21 @@ namespace GettingStartedCS.main.CodeValidation
         CONSTRAINT_C10 = 10,
         CONSTRAINT_C11 = 11,
         // Repository constraints
-        CONSTRAINT_12 = 12,
-        CONSTRAINT_13 = 13,
-        CONSTRAINT_14 = 14,
+        CONSTRAINT_C12 = 12,
+        CONSTRAINT_C13 = 13,
+        CONSTRAINT_C14 = 14,
         // Factory constraints
-        CONSTRAINT_15 = 15,
-        CONSTRAINT_16 = 16,
+        CONSTRAINT_C15 = 15,
+        CONSTRAINT_C16 = 16,
         // Aggregate constraints
-        CONSTRAINT_17 = 17,
-        CONSTRAINT_18 = 18,
-        CONSTRAINT_19 = 19,
-        CONSTRAINT_20 = 20,
-        CONSTRAINT_21 = 21,
-        CONSTRAINT_22 = 22,
-        CONSTRAINT_23 = 23,
-        CONSTRAINT_24 = 24,
+        CONSTRAINT_C17 = 17,
+        CONSTRAINT_C18 = 18,
+        CONSTRAINT_C19 = 19,
+        CONSTRAINT_C20 = 20,
+        CONSTRAINT_C21 = 21,
+        CONSTRAINT_C22 = 22,
+        CONSTRAINT_C23 = 23,
+        CONSTRAINT_C24 = 24,
 
     }
 
@@ -70,31 +70,31 @@ namespace GettingStartedCS.main.CodeValidation
                     return "C10. A domain service is stateless";
                 case Constraint.CONSTRAINT_C11:
                     return "C11. A domain service should not be designed as another patterns at the same time.";
-                case Constraint.CONSTRAINT_12:
+                case Constraint.CONSTRAINT_C12:
                     return "12. A repository needs to specify the object that it accesses. The object can be entity, value object, and aggregate root";
-                case Constraint.CONSTRAINT_13:
+                case Constraint.CONSTRAINT_C13:
                     return "13. A repository has no attributes";
-                case Constraint.CONSTRAINT_14:
+                case Constraint.CONSTRAINT_C14:
                     return "14. A repository should not be designed as another patterns at the same time.";
-                case Constraint.CONSTRAINT_15:
+                case Constraint.CONSTRAINT_C15:
                     return "15. A factory needs to specify the object that it creates. The type of the object can be entity,value object, and aggregate root.";
-                case Constraint.CONSTRAINT_16:
+                case Constraint.CONSTRAINT_C16:
                     return "16. A factory should not be designed as other patterns at the same time.";
-                case Constraint.CONSTRAINT_17:
+                case Constraint.CONSTRAINT_C17:
                     return "17. The root of an aggregate can only be designed as an entity.";
-                case Constraint.CONSTRAINT_18:
+                case Constraint.CONSTRAINT_C18:
                     return "18. The aggregate part can only be designed as an entity or a value object.";
-                case Constraint.CONSTRAINT_19:
+                case Constraint.CONSTRAINT_C19:
                     return "19. The reference of an aggregate part cannot be held by the outside objects";
-                case Constraint.CONSTRAINT_20:
+                case Constraint.CONSTRAINT_C20:
                     return "20. An aggregate has one and only one aggregate root.";
-                case Constraint.CONSTRAINT_21:
+                case Constraint.CONSTRAINT_C21:
                     return "21. Except the aggregate root, an aggregate can only contain aggregate parts.";
-                case Constraint.CONSTRAINT_22:
+                case Constraint.CONSTRAINT_C22:
                     return "22. The creation of an aggregate should be done by a factory.";
-                case Constraint.CONSTRAINT_23:
+                case Constraint.CONSTRAINT_C23:
                     return "23. The accessing of an aggregate should be done by a repository.";
-                case Constraint.CONSTRAINT_24:
+                case Constraint.CONSTRAINT_C24:
                     return "24. The objects within an aggregate should not be crosscutting different bounded contexts.";
                 default:
                     return "";

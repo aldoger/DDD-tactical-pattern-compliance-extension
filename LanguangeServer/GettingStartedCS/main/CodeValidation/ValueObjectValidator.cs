@@ -38,7 +38,7 @@ namespace GettingStartedCS.main.CodeValidation
             }
         }
 
-        public bool ValidateConstraintC3(ValueObject vo)
+        private bool ValidateConstraintC3(ValueObject vo)
         {
             if (vo.ClassInfo == null) return false;
             var properties = parser.GetProperties(vo.ClassInfo.ClassDeclaration);
@@ -49,7 +49,7 @@ namespace GettingStartedCS.main.CodeValidation
             return true;
         }
 
-        public bool ValidateConstraintC4(ValueObject vo)
+        private bool ValidateConstraintC4(ValueObject vo)
         {
             if (vo.ClassInfo == null) return false;
             var properties = parser.GetProperties(vo.ClassInfo.ClassDeclaration);

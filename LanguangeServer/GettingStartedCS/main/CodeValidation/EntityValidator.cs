@@ -39,7 +39,7 @@ namespace GettingStartedCS.main.CodeValidation
             }
         }
 
-        public bool ValidateConstraintC1(Entity entity)
+        private bool ValidateConstraintC1(Entity entity)
         {
             if (entity.ClassInfo == null) return false;
             var properties = parser.GetProperties(entity.ClassInfo.ClassDeclaration);
@@ -50,7 +50,7 @@ namespace GettingStartedCS.main.CodeValidation
             return false;
         }
 
-        public bool ValidateConstraintC2(Entity entity)
+        private bool ValidateConstraintC2(Entity entity)
         {
             var countPropertyId = 0;
             if (entity.ClassInfo == null) return false;
