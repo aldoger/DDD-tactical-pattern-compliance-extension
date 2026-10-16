@@ -295,6 +295,151 @@ namespace GettingStartedCS
                     }
                 }
 
+                public class HumanFactory
+                {
+                    // New human: generates the id and validates input.
+                    public Human Create(string name, int age)
+                    {
+                        Validate(name, age);
+                        return new Human(Guid.NewGuid(), name.Trim(), age);
+                    }
+ 
+                    // Rebuild from storage: keeps the stored id and residence link.
+                    public Human Reconstitute(Guid id, string name, int age, Guid? residenceId)
+                    {
+                        Validate(name, age);
+                        var human = new Human(id, name.Trim(), age);
+                        if (residenceId.HasValue)
+                            human.AssignResidence(residenceId.Value);
+                        return human;
+                    }
+ 
+                    private static void Validate(string name, int age)
+                    {
+                        if (string.IsNullOrWhiteSpace(name))
+                            throw new ArgumentException(""Name is required."", nameof(name));
+                        if (age < 0)
+                            throw new ArgumentOutOfRangeException(nameof(age));
+                    }
+                }
+ 
+                public class ResidenceFactory
+                {
+                    public Residence Create(string street, string city, string province,
+                                            string postalCode, string country, int capacity)
+                    {
+                        var address = Address.Create(street, city, province, postalCode, country);
+                        return new Residence(Guid.NewGuid(), address, capacity);
+                    }
+ 
+                    public Residence Create(Address address, int capacity)
+                        => new(Guid.NewGuid(), address, capacity);
+ 
+                    // Rebuild from storage, including residents and head of household.
+                    public Residence Reconstitute(Guid id, Address address, int capacity,
+                                                  IEnumerable<Guid> residentIds, Guid? headOfHouseholdId)
+                    {
+                        var residence = new Residence(id, address, capacity);
+ 
+                        foreach (var residentId in residentIds)
+                            residence.AddResident(residentId);
+ 
+                        if (headOfHouseholdId.HasValue)
+                            residence.AssignHead(headOfHouseholdId.Value);
+ 
+                        return residence;
+                    }
+                }
+
+                public interface IHumanRepository
+                {
+                    Task<Human?> GetByIdAsync(Guid id, CancellationToken ct = default);
+                    Task<IReadOnlyList<Human>> GetByResidenceAsync(Guid residenceId, CancellationToken ct = default);
+                    Task AddAsync(Human human, CancellationToken ct = default);
+                    Task UpdateAsync(Human human, CancellationToken ct = default);
+                    Task RemoveAsync(Guid id, CancellationToken ct = default);
+                }
+
+                public interface IResidenceRepository
+                {
+                    Task<Residence?> GetByIdAsync(Guid id, CancellationToken ct = default);
+                    Task<Residence?> GetByAddressAsync(Address address, CancellationToken ct = default);
+                    Task<IReadOnlyList<Residence>> ListAsync(CancellationToken ct = default);
+                    Task AddAsync(Residence residence, CancellationToken ct = default);
+                    Task UpdateAsync(Residence residence, CancellationToken ct = default);
+                    Task RemoveAsync(Guid id, CancellationToken ct = default);
+                }
+
+                // ---------- in-memory implementations (tests / prototyping) ----------
+                public class InMemoryHumanRepository : IHumanRepository
+                {
+                    private readonly ConcurrentDictionary<Guid, Human> _store = new();
+
+                    public Task<Human?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
+                        Task.FromResult(_store.GetValueOrDefault(id));
+
+                    public Task<IReadOnlyList<Human>> GetByResidenceAsync(Guid residenceId, CancellationToken ct = default) =>
+                        Task.FromResult<IReadOnlyList<Human>>(
+                            _store.Values.Where(h => h.ResidenceId == residenceId).ToList());
+
+                    public Task AddAsync(Human human, CancellationToken ct = default)
+                    {
+                        if (!_store.TryAdd(human.Id, human))
+                            throw new InvalidOperationException($""Human {human.Id} already exists."");
+                        return Task.CompletedTask;
+                    }
+
+                    public Task UpdateAsync(Human human, CancellationToken ct = default)
+                    {
+                        if (!_store.ContainsKey(human.Id))
+                            throw new KeyNotFoundException($""Human {human.Id} not found."");
+                        _store[human.Id] = human;
+                        return Task.CompletedTask;
+                    }
+
+                    public Task RemoveAsync(Guid id, CancellationToken ct = default)
+                    {
+                        _store.TryRemove(id, out _);
+                        return Task.CompletedTask;
+                    }
+                }
+
+                public class InMemoryResidenceRepository : IResidenceRepository
+                {
+                    private readonly ConcurrentDictionary<Guid, Residence> _store = new();
+
+                    public Task<Residence?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
+                        Task.FromResult(_store.GetValueOrDefault(id));
+
+                    // Works because Address is a value object with structural equality.
+                    public Task<Residence?> GetByAddressAsync(Address address, CancellationToken ct = default) =>
+                        Task.FromResult(_store.Values.FirstOrDefault(r => r.Address == address));
+
+                    public Task<IReadOnlyList<Residence>> ListAsync(CancellationToken ct = default) =>
+                        Task.FromResult<IReadOnlyList<Residence>>(_store.Values.ToList());
+
+                    public Task AddAsync(Residence residence, CancellationToken ct = default)
+                    {
+                        if (!_store.TryAdd(residence.Id, residence))
+                            throw new InvalidOperationException($""Residence {residence.Id} already exists."");
+                        return Task.CompletedTask;
+                    }
+
+                    public Task UpdateAsync(Residence residence, CancellationToken ct = default)
+                    {
+                        if (!_store.ContainsKey(residence.Id))
+                            throw new KeyNotFoundException($""Residence {residence.Id} not found."");
+                        _store[residence.Id] = residence;
+                        return Task.CompletedTask;
+                    }
+
+                    public Task RemoveAsync(Guid id, CancellationToken ct = default)
+                    {
+                        _store.TryRemove(id, out _);
+                        return Task.CompletedTask;
+                    }
+                }
+
 
             ";
 
