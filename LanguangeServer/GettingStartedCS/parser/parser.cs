@@ -1,5 +1,4 @@
-﻿using GettingStartedCS.main.StructureInfo;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
@@ -7,7 +6,6 @@ using System.Linq;
 
 namespace GettingStartedCS.parser
 {
-    using GettingStartedCS.main.StructureInfo;
     public class Parser
     {
         private SyntaxTree tree;
@@ -101,6 +99,30 @@ namespace GettingStartedCS.parser
             // A getter is required, and neither setter nor init accessor is allowed
             // under a strict getter-only policy.
             return hasGetter && !hasSetter && !hasInit;
+        }
+
+        static readonly HashSet<string> TemporalNames = new()
+        { 
+            "DateTime", "DateTimeOffset", "TimeSpan", "DateOnly", "TimeOnly"
+        };
+
+        public bool IsTemporalSyntax(PropertyDeclarationSyntax prop)
+        {
+            var type = prop.Type;
+
+            // unwrap DateTime?
+            if (type is NullableTypeSyntax nullable)
+                type = nullable.ElementType;
+
+            var name = type switch
+            {
+                IdentifierNameSyntax id => id.Identifier.Text,                 // DateTime
+                QualifiedNameSyntax q => q.Right.Identifier.Text,            // System.DateTime
+                AliasQualifiedNameSyntax a => a.Name.Identifier.Text,          // global::System.DateTime
+                _ => null
+            };
+
+            return name is not null && TemporalNames.Contains(name);
         }
 
     }

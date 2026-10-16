@@ -1,10 +1,6 @@
 ﻿using GettingStartedCS.main.StructureInfo;
 using GettingStartedCS.main.CodeValidation;
 using GettingStartedCS.main.Identifier;
-using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.IO;

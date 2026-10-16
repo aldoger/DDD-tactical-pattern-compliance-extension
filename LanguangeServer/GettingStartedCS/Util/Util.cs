@@ -1,6 +1,5 @@
 ﻿using GettingStartedCS.main.Identifier;
 using GettingStartedCS.main.StructureInfo;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,19 +15,18 @@ namespace GettingStartedCS.Util
             return name.Contains("Id", StringComparison.OrdinalIgnoreCase);
         }
 
-        /// <summary>
-        /// Prints every class in the collection with its stereotype(s),
-        /// followed by each of its methods and their stereotype(s).
-        /// </summary>
+        public static bool IsDomainModelEntityOrValueObjectOrAggregate(DomainModelStruct dm)
+        {
+            if ((dm is Entity) || (dm is ValueObject) || (dm is Aggregate)) return true;
+            return false;
+        }
+
         public static void PrintStereotypes(IEnumerable<ClassStructureInfo> classes)
         {
             foreach (ClassStructureInfo cls in classes)
                 PrintStereotypes(cls);
         }
 
-        /// <summary>
-        /// Prints one class with its stereotype(s), followed by its methods.
-        /// </summary>
         public static void PrintStereotypes(ClassStructureInfo cls)
         {
             Console.WriteLine($"Class: {cls.ClassName}  [{FormatClassStereotypes(cls)}]");

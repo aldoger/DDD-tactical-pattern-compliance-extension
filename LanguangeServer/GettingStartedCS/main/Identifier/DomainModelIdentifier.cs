@@ -16,6 +16,21 @@ namespace GettingStartedCS.main.Identifier
             foreach (var m in classStructureInfo.Methods) m.Analyze(cls);
             new ClassStereotypeIdentifier().IdentifyStereotype(classStructureInfo);
 
+            if(IsFactory(classStructureInfo.Stereotype))
+            {
+                Factory newFactory = new Factory(classStructureInfo.ClassName);
+                newFactory.SetClassInfo(classStructureInfo);
+                domainModelList.AddDomainModel(newFactory);
+                return;
+            }
+
+            if (IsRepository(classStructureInfo.Stereotype))
+            {
+                Repository newRepository = new Repository(classStructureInfo.ClassName, classStructureInfo);
+                domainModelList.AddDomainModel(newRepository);
+                return;
+            }
+
             if (IsDomainService(classStructureInfo.Stereotype))
             {
                 DomainService newDomainService = new DomainService(classStructureInfo.ClassName, classStructureInfo);
@@ -37,14 +52,20 @@ namespace GettingStartedCS.main.Identifier
             }
         }
 
-        public static bool IsEntity(List<ClassStereotype> ls)
+        private static bool IsFactory(List<ClassStereotype> ls)
+        {
+            if (ls.Contains(ClassStereotype.Factory) && ls.Count() == 1) return true;
+            return false;
+        }
+
+        private static bool IsEntity(List<ClassStereotype> ls)
         {
             var isEntity = false;
             if (ls.Contains(ClassStereotype.Entity)) isEntity = true;
             return isEntity;
         }
 
-        public static bool IsValueObject(List<ClassStereotype> ls)
+        private static bool IsValueObject(List<ClassStereotype> ls)
         {
             var isValueObject = false;
             if (ls.Contains(ClassStereotype.DataClass)) isValueObject = true;
@@ -52,7 +73,7 @@ namespace GettingStartedCS.main.Identifier
             return isValueObject;
         }
 
-        public static bool IsDomainService(List<ClassStereotype> ls)
+        private static bool IsDomainService(List<ClassStereotype> ls)
         {
             var isDomainService = false;
             if (ls.Contains(ClassStereotype.Boundary)) isDomainService = true;
@@ -60,6 +81,12 @@ namespace GettingStartedCS.main.Identifier
             if (ls.Contains(ClassStereotype.PureController)) isDomainService = true;
             if (ls.Contains(ClassStereotype.Controller)) isDomainService = true;
             return isDomainService;
+        }
+
+        private static bool IsRepository(List<ClassStereotype> ls)
+        {
+            if (ls.Contains(ClassStereotype.Boundary) && !ls.Contains(ClassStereotype.Entity)) return true;
+            return false;
         }
     }
 }
