@@ -42,13 +42,11 @@ namespace GettingStartedCS
                             Country = country.Trim();
                         }
  
-                        // ---------- creational ----------
                         public static Address Create(string street, string city, string province, string postalCode, string country)
                         {
                             return new Address(street, city, province, postalCode, country);
                         }
  
-                        // ""Mutation"" returns a new value instead of changing this one.
                         public Address WithStreet(string street)
                         {
                             return new Address(street, City, Province, PostalCode, Country);
@@ -74,7 +72,6 @@ namespace GettingStartedCS
                             return new Address(Street, City, Province, PostalCode, country);
                         }
  
-                        // ---------- accessors ----------
                         public bool IsInCountry(string country)
                         {
                             return string.Equals(Country, country?.Trim(), StringComparison.OrdinalIgnoreCase);
@@ -195,7 +192,6 @@ namespace GettingStartedCS
                         Address = newAddress ?? throw new ArgumentNullException(nameof(newAddress));
                     }
  
-                    // The first resident automatically becomes the head of the household.
                     public void AddResident(Guid humanId)
                     {
                         if (IsFull())
@@ -252,7 +248,6 @@ namespace GettingStartedCS
                         if (human.ResidenceId != residence.Id)
                             throw new InvalidOperationException(""Human does not live in this residence."");
  
-                        // Throws if the head tries to leave while others remain; nothing has changed yet.
                         residence.RemoveResident(human.Id);
                         human.ClearResidence();
                     }
@@ -267,7 +262,6 @@ namespace GettingStartedCS
                         if (human.ResidenceId != from.Id)
                             throw new InvalidOperationException(""Human does not live in the source residence."");
  
-                        // Validate the destination first, so we never leave the human homeless on failure.
                         if (to.IsFull())
                             throw new InvalidOperationException(""Destination residence is full."");
                         if (to.IsEmpty() && !human.IsAdult())
@@ -297,14 +291,12 @@ namespace GettingStartedCS
 
                 public class HumanFactory
                 {
-                    // New human: generates the id and validates input.
                     public Human Create(string name, int age)
                     {
                         Validate(name, age);
                         return new Human(Guid.NewGuid(), name.Trim(), age);
                     }
  
-                    // Rebuild from storage: keeps the stored id and residence link.
                     public Human Reconstitute(Guid id, string name, int age, Guid? residenceId)
                     {
                         Validate(name, age);
@@ -335,7 +327,6 @@ namespace GettingStartedCS
                     public Residence Create(Address address, int capacity)
                         => new(Guid.NewGuid(), address, capacity);
  
-                    // Rebuild from storage, including residents and head of household.
                     public Residence Reconstitute(Guid id, Address address, int capacity,
                                                   IEnumerable<Guid> residentIds, Guid? headOfHouseholdId)
                     {
@@ -370,7 +361,6 @@ namespace GettingStartedCS
                     Task RemoveAsync(Guid id, CancellationToken ct = default);
                 }
 
-                // ---------- in-memory implementations (tests / prototyping) ----------
                 public class InMemoryHumanRepository : IHumanRepository
                 {
                     private readonly ConcurrentDictionary<Guid, Human> _store = new();
@@ -411,7 +401,6 @@ namespace GettingStartedCS
                     public Task<Residence?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
                         Task.FromResult(_store.GetValueOrDefault(id));
 
-                    // Works because Address is a value object with structural equality.
                     public Task<Residence?> GetByAddressAsync(Address address, CancellationToken ct = default) =>
                         Task.FromResult(_store.Values.FirstOrDefault(r => r.Address == address));
 
