@@ -37,6 +37,11 @@ namespace GettingStartedCS.Util
             Console.WriteLine();
         }
 
+        public static string GetClassDomainModelInfo()
+        {
+            return "";
+        }
+
         private static string FormatClassStereotypes(ClassStructureInfo cls)
         {
             return cls.Stereotype.Count == 0

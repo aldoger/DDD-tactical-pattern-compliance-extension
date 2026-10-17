@@ -96,7 +96,7 @@ namespace GettingStartedCS
 
                 public class Human
                 {
-                    public Guid Id { get; }
+                    public Guid Id { get; private set; }
                     public string Name { get; private set; }
                     public int Age { get; private set; }
                     public Guid? ResidenceId { get; private set; }
@@ -476,8 +476,6 @@ namespace GettingStartedCS
             // TODO: make algorithm to identify publisher and subscriber from domain events
 
             // TODO: make algorithm to identify aggregates by analyzing the relationships between domain models and other domain models
-
-            Util.Util.PrintStereotypes(classStructureInfoList.Classes);
 
             foreach (var domainModel in domainModelList.DomainModels)
             {

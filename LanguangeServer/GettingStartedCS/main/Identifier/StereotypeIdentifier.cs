@@ -205,28 +205,23 @@ namespace GettingStartedCS.main.Identifier
 
         private bool IsEntity(MethodCounts c)
         {
-            // Required: accessors AND mutators, beyond plain get/set.
-            // (A class with only get/set is a Data Class, not an Entity.)
             if (c.NonGetAccessors == 0 || c.NonSetMutators == 0)
                 return false;
 
             if (c.Controllers > 0)
                 return false;
 
-            // Minimum ratio is 0 by default, so this never blocks unless configured.
             return true;
         }
 
         private bool IsMinimalEntity(MethodCounts c)
         {
-            // Only getters, setters and commands; each at least once.
             if (c.AllMethods - (c.Getters + c.Setters + c.Commands) != 0) return false;
             if (c.Getters == 0 || c.Setters == 0 || c.Commands == 0) return false;
 
             return true;
         }
 
-        // Modified: only requires that accessors and factories both exist.
         private bool IsDataProvider(MethodCounts c)
             => c.Accessors > 0 && c.Factories > 0;
 
