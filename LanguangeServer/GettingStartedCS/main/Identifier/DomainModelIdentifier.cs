@@ -58,7 +58,7 @@ namespace GettingStartedCS.main.Identifier
 
         // ------------------------------------------------------------ decision
 
-        public static Decision Decide(ClassSignals s, IReadOnlyCollection<ClassStereotype> stereotypes)
+        public static Decision Decide(DomainModelSignals s, IReadOnlyCollection<ClassStereotype> stereotypes)
         {
             var ranked = Enum.GetValues<DomainModelKind>()
                 .Select(k => new KindScore(k, Score(k, s, stereotypes)))
@@ -80,14 +80,14 @@ namespace GettingStartedCS.main.Identifier
             return new Decision(best.Kind, ranked, "scored");
         }
 
-        public static double Score(DomainModelKind kind, ClassSignals s, IReadOnlyCollection<ClassStereotype> st)
+        public static double Score(DomainModelKind kind, DomainModelSignals s, IReadOnlyCollection<ClassStereotype> st)
         {
             double raw = RawScore(kind, s, st);
             if (double.IsNegativeInfinity(raw)) return raw;
             return raw - NamePenalty(kind, s.NameKind);
         }
 
-        private static double RawScore(DomainModelKind kind, ClassSignals s, IReadOnlyCollection<ClassStereotype> st)
+        private static double RawScore(DomainModelKind kind, DomainModelSignals s, IReadOnlyCollection<ClassStereotype> st)
         {
             bool Has(ClassStereotype x) => st.Contains(x);
 
@@ -113,8 +113,14 @@ namespace GettingStartedCS.main.Identifier
                 // as a value object; Equals + GetHashCode (or record/struct/IEquatable) strengthens it.
                 case DomainModelKind.ValueObject:
                     {
-                        if (s.HasIdentity) return Veto;
-                        return (Has(ClassStereotype.DataProvider) || Has(ClassStereotype.DataClass) ? 3 : 0)
+                        double score = MinScore;
+                        if (s.HasIdentity)
+                        {
+                            score -= 1;
+                            if (s.HasStructuralEquality) score += 3;
+                            if (s.SelfReturningMethods > 1) score += 3;
+                        }
+                        return score + (Has(ClassStereotype.DataProvider) || Has(ClassStereotype.DataClass) ? 3 : 0)
                              + (s.HasStructuralEquality ? 3 : 0)
                              + (s.AllStateReadOnly ? 2 : 0)
                              + (s.SelfReturningMethods > 0 ? 1 : 0);

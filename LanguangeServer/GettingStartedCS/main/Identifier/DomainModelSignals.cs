@@ -17,7 +17,7 @@ namespace GettingStartedCS.main.Identifier
     /// Structural evidence about a class, extracted from syntax. Used by
     /// DomainModelIdentifier next to the class stereotypes.
     /// </summary>
-    public sealed record ClassSignals(
+    public sealed record DomainModelSignals(
         bool HasIdentity,                  // Id or <ClassName>Id member
         int StateMemberCount,              // instance fields / auto-properties / record parameters
         bool AllStateReadOnly,             // >=1 state member and all immutable (get-only/init/readonly, non-collection)
@@ -59,7 +59,7 @@ namespace GettingStartedCS.main.Identifier
             "Decimal", "String", "Int32", "Int64", "Boolean", "Double", "Single", "Byte", "Char"
         };
 
-        public static ClassSignals Extract(TypeDeclarationSyntax type, ISet<string>? projectTypeNames = null)
+        public static DomainModelSignals Extract(TypeDeclarationSyntax type, ISet<string>? projectTypeNames = null)
         {
             string ownName = type.Identifier.Text;
 
@@ -98,7 +98,7 @@ namespace GettingStartedCS.main.Identifier
                 return n.EndsWith("Repository") || n.EndsWith("RepositoryBase");
             }) ?? false;
 
-            return new ClassSignals(
+            return new DomainModelSignals(
                 HasIdentity: HasIdentity(type, ownName),
                 StateMemberCount: state.Count,
                 AllStateReadOnly: allReadOnly,
