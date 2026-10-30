@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace GettingStartedCS.main.StructureInfo
 {
+    public enum AggregateType
+    {
+        AGGREGATE_PART,
+        AGGREGATE_ROOT
+    }
     public abstract class DomainModelStruct 
     {
         public string Name { get; }
@@ -89,8 +94,8 @@ namespace GettingStartedCS.main.StructureInfo
     public class Aggregate : DomainModelStruct
     {
         public ClassStructureInfo? ClassInfo;
-        public string AggregateType;
-        public void SetAggregateType(string aggregateType)
+        public AggregateType AggregateType;
+        public void SetAggregateType(AggregateType aggregateType)
         {
             AggregateType = aggregateType;
         }

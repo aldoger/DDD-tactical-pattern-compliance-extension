@@ -13,19 +13,19 @@ namespace GettingStartedCS.main.CodeValidation
         public override void Validate(DomainModelStruct domainModel, ViolationList vlist, DomainModelList domainList)
         {
             Factory fc = (Factory)domainModel;
-            bool c14 = ValidateConstraintC14(fc, domainList);
+            bool c16 = ValidateConstraintC16(fc, domainList);
             bool c15 = ValidateConstraintC15(fc, domainList);
 
             string name = "";
             if (fc.IsMethod) name = fc.MethodInfo.MethodName;
             else if (fc.IsClass) name = fc.ClassInfo.ClassName;
 
-            if(!c14)
+            if(!c16)
             {
                 vlist.AddViolation(
                     new Violation(
                         name,
-                        Constraint.CONSTRAINT_C14,
+                        Constraint.CONSTRAINT_C16,
                         ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C14)
                     )
                 );
@@ -43,7 +43,7 @@ namespace GettingStartedCS.main.CodeValidation
             }
         }
 
-        private bool ValidateConstraintC14(Factory fc, DomainModelList domainList)
+        private bool ValidateConstraintC16(Factory fc, DomainModelList domainList)
         {
             if (fc.ClassInfo == null) return false;
             var domainModels = domainList.GetDomainModel(fc.ClassInfo.ClassName);
@@ -66,6 +66,7 @@ namespace GettingStartedCS.main.CodeValidation
             {
                 foreach(var method in fc.ClassInfo.Methods)
                 {
+                    if (parser.IsMethodPrivate(method.MethodDeclaration)) continue;
                     var returnType = method.ReturnType;
                     var domainModel = domainList.GetDomainModelFirst(returnType);
                     if (domainModel == null) return false;

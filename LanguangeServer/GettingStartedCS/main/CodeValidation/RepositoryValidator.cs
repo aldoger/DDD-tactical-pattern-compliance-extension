@@ -2,6 +2,7 @@
 using GettingStartedCS.main.StructureInfo;
 using GettingStartedCS.parser;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -14,7 +15,7 @@ namespace GettingStartedCS.main.CodeValidation
         public override void Validate(DomainModelStruct domainModel, ViolationList vlist, DomainModelList domainList)
         {
             Repository rp = (Repository)domainModel;
-            bool c12 = ValidateConstraintC12(rp);
+            bool c12 = ValidateConstraintC12(rp, domainList);
             bool c13 = ValidateConstraintC13(rp);
             bool c14 = ValidateConstraintC14(rp, domainList);
 
@@ -52,10 +53,27 @@ namespace GettingStartedCS.main.CodeValidation
             }
         }
 
-        private bool ValidateConstraintC12(Repository rp)
+        private bool ValidateConstraintC12(Repository rp, DomainModelList domainList)
         {
-            // TODO: check every methods parameter to know parameter type is 
-            return true;
+            var found = new HashSet<string>();
+            if (rp.ClassInfo == null) return false;
+
+            foreach (var method in rp.ClassInfo.Methods)
+            {
+                var decl = method.MethodDeclaration;
+
+                var typeNames = parser.GetMethodParameters(decl)
+                    .SelectMany(p => parser.GetTypeNames(p.Type))
+                    .Concat(parser.GetTypeNames(decl.ReturnType));
+
+                foreach (var name in typeNames)
+                {
+                    var dm = domainList.GetDomainModelFirst(name);
+                    if (dm != null && Util.Util.IsDomainModelEntityOrValueObjectOrAggregate(dm))
+                        found.Add(name);
+                }
+            }
+            return found.Count > 0;
         }
 
         private bool ValidateConstraintC13(Repository rp)

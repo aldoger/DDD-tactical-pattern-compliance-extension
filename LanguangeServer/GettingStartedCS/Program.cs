@@ -429,7 +429,7 @@ namespace GettingStartedCS
                     }
                 }
 
-
+                
             ";
 
             ClassStructureInfoList classStructureInfoList = new ClassStructureInfoList();
@@ -464,7 +464,14 @@ namespace GettingStartedCS
 
             // TODO: make algorithm to identify publisher and subscriber from domain events
 
-            // TODO: make algorithm to identify aggregates by analyzing the relationships between domain models and other domain models
+            // Phase 1: Construction of Call graph
+
+
+            // Phase 2: Clustering Graph Initialization
+
+            // Phase 3: Graph Enhancment
+
+            // Phase 4: Aggregates Clustering Algorithm
 
             foreach (var domainModel in domainModelList.DomainModels)
             {

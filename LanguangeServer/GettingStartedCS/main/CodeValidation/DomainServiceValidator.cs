@@ -50,7 +50,7 @@ namespace GettingStartedCS.main.CodeValidation
         private bool ValidateConstraintC11(DomainService ds, DomainModelList domainModelList)
         {
             var domainModels = domainModelList.GetDomainModel(ds.Name);
-            if (domainModels.Count() > 0) return false;
+            if (domainModels.Count() > 1) return false;
             return true;
         }
     }

@@ -28,11 +28,6 @@ namespace GettingStartedCS.main.Identifier
             IReadOnlyList<KindScore> Ranked,
             string Reason);
 
-        /// <param name="projectTypeNames">
-        /// Optional: simple names of all project-defined types. Used to count "domain types" in public
-        /// method parameters (a Domain Service signal). If null, a naming heuristic is used instead.
-        /// Existing callers keep working without it.
-        /// </param>
         public static void IdentifyDomainModels(
             ClassStructureInfo classStructureInfo,
             DomainModelList domainModelList,

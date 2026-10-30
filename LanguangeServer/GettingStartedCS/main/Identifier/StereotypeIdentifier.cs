@@ -211,6 +211,11 @@ namespace GettingStartedCS.main.Identifier
             if (c.Controllers > 0)
                 return false;
 
+            double ratio = c.NonCollaborators == 0
+            ? double.PositiveInfinity
+            : (double)c.Collaborators / c.NonCollaborators;
+                    if (ratio < 2) return false;
+
             return true;
         }
 
@@ -223,7 +228,7 @@ namespace GettingStartedCS.main.Identifier
         }
 
         private bool IsDataProvider(MethodCounts c)
-            => c.Accessors > 0 && c.Factories > 0;
+            => c.Accessors > 2 * c.Mutators && c.Factories > 0;
 
         private bool IsCommander(MethodCounts c)
             => (c.Mutators > 2 * c.Accessors) && (c.Mutators > 2 * (c.Controllers + c.Factories));

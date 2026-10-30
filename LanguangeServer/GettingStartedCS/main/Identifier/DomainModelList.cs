@@ -4,6 +4,8 @@ using System.Linq;
 namespace GettingStartedCS.main.Identifier
 {
     using GettingStartedCS.main.StructureInfo;
+    using System;
+
     public class DomainModelList
     {
         public DomainModelList() { }
@@ -30,5 +32,25 @@ namespace GettingStartedCS.main.Identifier
             var domainModel = DomainModels.FirstOrDefault(dm => dm.Name == name);
             return domainModel;
         }
+
+        public List<DomainModelStruct> GetDomainModelByType(DomainModelStruct dms)
+        {
+            return dms switch
+            {
+                Entity => Filter<Entity>(),
+                ValueObject => Filter<ValueObject>(),
+                DomainService => Filter<DomainService>(),
+                DomainEvent => Filter<DomainEvent>(),
+                Factory => Filter<Factory>(),
+                Repository => Filter<Repository>(),
+                Aggregate => Filter<Aggregate>(),
+                null => throw new ArgumentNullException(nameof(dms)),
+                _ => throw new NotSupportedException(
+                                     $"Tipe {dms.GetType().Name} belum ditangani")
+            };
+        }
+
+        private List<DomainModelStruct> Filter<T>() where T : DomainModelStruct
+             => DomainModels.OfType<T>().Cast<DomainModelStruct>().ToList();
     }
 }

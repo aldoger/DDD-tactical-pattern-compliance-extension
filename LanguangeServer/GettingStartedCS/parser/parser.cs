@@ -48,9 +48,32 @@ namespace GettingStartedCS.parser
             return classDeclaration.DescendantNodes().OfType<MethodDeclarationSyntax>();
         }
 
+        public IEnumerable<ParameterSyntax> GetMethodParameters(MethodDeclarationSyntax methodDeclaration)
+        {
+            return methodDeclaration.ParameterList.Parameters;
+        }
+
         public IEnumerable<PropertyDeclarationSyntax> GetProperties(ClassDeclarationSyntax classDeclare)
         {
             return classDeclare.DescendantNodes().OfType<PropertyDeclarationSyntax>();
+        }
+        public bool IsMethodPrivate(MethodDeclarationSyntax methodDeclaration)
+        {
+            var mods = methodDeclaration.Modifiers;
+
+            if (mods.Any(SyntaxKind.PrivateKeyword) && !mods.Any(SyntaxKind.ProtectedKeyword))
+                return true;
+
+            bool hasAccessModifier =
+                mods.Any(SyntaxKind.PublicKeyword) || mods.Any(SyntaxKind.PrivateKeyword) ||
+                mods.Any(SyntaxKind.ProtectedKeyword) || mods.Any(SyntaxKind.InternalKeyword);
+            if (hasAccessModifier)
+                return false;
+
+            if (methodDeclaration.ExplicitInterfaceSpecifier != null)
+                return false;
+
+            return methodDeclaration.Parent is not InterfaceDeclarationSyntax;
         }
 
         public string? GetBaseClassNameType(ClassDeclarationSyntax classDeclaration)
@@ -123,6 +146,45 @@ namespace GettingStartedCS.parser
             };
 
             return name is not null && TemporalNames.Contains(name);
+        }
+
+        public IEnumerable<string> GetTypeNames(TypeSyntax? type)
+        {
+            switch (type)
+            {
+                case null:
+                    yield break;
+                case IdentifierNameSyntax id:
+                    yield return id.Identifier.Text;
+                    break;
+                case GenericNameSyntax g:
+                    yield return g.Identifier.Text;
+                    foreach (var arg in g.TypeArgumentList.Arguments)
+                        foreach (var n in GetTypeNames(arg)) yield return n;
+                    break;
+                case QualifiedNameSyntax q:
+                    foreach (var n in GetTypeNames(q.Right)) yield return n;
+                    break;
+                case AliasQualifiedNameSyntax aq:
+                    foreach (var n in GetTypeNames(aq.Name)) yield return n;
+                    break;
+                case NullableTypeSyntax nt:
+                    foreach (var n in GetTypeNames(nt.ElementType)) yield return n;
+                    break;
+                case ArrayTypeSyntax at:
+                    foreach (var n in GetTypeNames(at.ElementType)) yield return n;
+                    break;
+                case RefTypeSyntax rt:
+                    foreach (var n in GetTypeNames(rt.Type)) yield return n;
+                    break;
+                case TupleTypeSyntax tt:
+                    foreach (var el in tt.Elements)
+                        foreach (var n in GetTypeNames(el.Type)) yield return n;
+                    break;
+                case PredefinedTypeSyntax pt:
+                    yield return pt.Keyword.Text;
+                    break;
+            }
         }
 
     }
