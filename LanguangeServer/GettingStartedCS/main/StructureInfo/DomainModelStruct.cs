@@ -11,7 +11,7 @@ namespace GettingStartedCS.main.StructureInfo
         AGGREGATE_PART,
         AGGREGATE_ROOT
     }
-    public abstract class DomainModelStruct 
+    public abstract class DomainModelStruct
     {
         public string Name { get; }
         public string DomainType { get; }
@@ -95,9 +95,15 @@ namespace GettingStartedCS.main.StructureInfo
     {
         public ClassStructureInfo? ClassInfo;
         public AggregateType AggregateType;
+        /// <summary>Nama root dari aggregate tempat class ini berada (untuk root: namanya sendiri).</summary>
+        public string? RootName;
         public void SetAggregateType(AggregateType aggregateType)
         {
             AggregateType = aggregateType;
+        }
+        public void SetRootName(string rootName)
+        {
+            RootName = rootName;
         }
         public Aggregate(string name, ClassStructureInfo classInfo)
             : base(name, "Aggregate")

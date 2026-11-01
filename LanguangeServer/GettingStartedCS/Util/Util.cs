@@ -37,11 +37,6 @@ namespace GettingStartedCS.Util
             Console.WriteLine();
         }
 
-        public static string GetClassDomainModelInfo()
-        {
-            return "";
-        }
-
         private static string FormatClassStereotypes(ClassStructureInfo cls)
         {
             return cls.Stereotype.Count == 0
@@ -54,6 +49,48 @@ namespace GettingStartedCS.Util
             return method.Stereotype.Count == 0
                 ? MethodStereotype.Unclassified.ToText()
                 : string.Join(", ", method.Stereotype.Select(s => s.ToText()));
+        }
+
+        public static string PrintDomainModelList(DomainModelList domainModelList)
+        {
+            var sb = new StringBuilder();
+            foreach (var dm in domainModelList.DomainModels)
+            {
+                sb.AppendLine($"Domain Model: {dm.Name} [{dm.DomainType}]");
+                if (dm is Entity entity && entity.ClassInfo != null)
+                {
+                    sb.AppendLine($"  Class: {entity.ClassInfo.ClassName}");
+                    foreach (var method in entity.ClassInfo.Methods)
+                    {
+                        sb.AppendLine($"    Method: {method.MethodName}");
+                    }
+                }
+                else if (dm is ValueObject valueObject && valueObject.ClassInfo != null)
+                {
+                    sb.AppendLine($"  Class: {valueObject.ClassInfo.ClassName}");
+                    foreach (var method in valueObject.ClassInfo.Methods)
+                    {
+                        sb.AppendLine($"    Method: {method.MethodName}");
+                    }
+                }
+                else if (dm is DomainService domainService && domainService.ClassInfo != null)
+                {
+                    sb.AppendLine($"  Class: {domainService.ClassInfo.ClassName}");
+                    foreach (var method in domainService.ClassInfo.Methods)
+                    {
+                        sb.AppendLine($"    Method: {method.MethodName}");
+                    }
+                }
+                else if (dm is DomainEvent domainEvent && domainEvent.ClassInfo != null)
+                {
+                    sb.AppendLine($"  Class: {domainEvent.ClassInfo.ClassName}");
+                    foreach (var method in domainEvent.ClassInfo.Methods)
+                    {
+                        sb.AppendLine($"    Method: {method.MethodName}");
+                    }
+                }
+            }
+            return sb.ToString();
         }
     }
 }

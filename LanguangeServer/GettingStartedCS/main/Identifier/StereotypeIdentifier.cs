@@ -211,10 +211,13 @@ namespace GettingStartedCS.main.Identifier
             if (c.Controllers > 0)
                 return false;
 
-            double ratio = c.NonCollaborators == 0
-            ? double.PositiveInfinity
-            : (double)c.Collaborators / c.NonCollaborators;
+            if(c.Collaborators > 0)
+            {
+                double ratio = c.NonCollaborators == 0
+                ? double.PositiveInfinity
+                : (double)c.Collaborators / c.NonCollaborators;
                     if (ratio < 2) return false;
+            }
 
             return true;
         }

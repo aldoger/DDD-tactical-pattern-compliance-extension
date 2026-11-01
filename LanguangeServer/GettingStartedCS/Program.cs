@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using GettingStartedCS.Main.Identifier;
 
 namespace GettingStartedCS
 {
@@ -427,9 +428,7 @@ namespace GettingStartedCS
                         _store.TryRemove(id, out _);
                         return Task.CompletedTask;
                     }
-                }
-
-                
+                }                
             ";
 
             ClassStructureInfoList classStructureInfoList = new ClassStructureInfoList();
@@ -462,16 +461,20 @@ namespace GettingStartedCS
                DomainModelIdentifier.IdentifyDomainModels(c, domainModelList);
             }
 
+            Util.Util.PrintStereotypes(classStructureInfoList.Classes);
+
             // TODO: make algorithm to identify publisher and subscriber from domain events
 
-            // Phase 1: Construction of Call graph
+            var aggregateIdentifier = new AggregateIdentifier(parser.Compilation);
+            var aggResult = aggregateIdentifier.Identify(domainModelList);
 
+            aggregateIdentifier.RegisterAggregates(domainModelList, aggResult, ClusteringAlgorithm.Strict);
 
-            // Phase 2: Clustering Graph Initialization
+            var domainModelListOutput = Util.Util.PrintDomainModelList(domainModelList);
 
-            // Phase 3: Graph Enhancment
+            Console.WriteLine(domainModelListOutput);
 
-            // Phase 4: Aggregates Clustering Algorithm
+            return;
 
             foreach (var domainModel in domainModelList.DomainModels)
             {

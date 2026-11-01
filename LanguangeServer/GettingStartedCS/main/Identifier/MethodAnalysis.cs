@@ -7,11 +7,6 @@ using System.Linq;
 
 namespace GettingStartedCS.main.StructureInfo
 {
-    // =====================================================================
-    //  Type classification  (PrimitiveTypes + checkNonPrimitiveType)
-    // =====================================================================
-
-    /// <summary>NonPrimitive: not in the primitive list. External: non-primitive AND not the current class.</summary>
     public readonly record struct TypeTraits(bool NonPrimitive, bool External);
 
     public sealed class TypeClassifier
@@ -32,7 +27,6 @@ namespace GettingStartedCS.main.StructureInfo
                 foreach (var p in extraPrimitives) _primitives.Add(p);
         }
 
-        /// <summary>List&lt;Order&gt;[] -> List, System.Foo? -> Foo, int[] -> int</summary>
         public static string BaseName(string type)
         {
             string t = type.Trim();
@@ -47,7 +41,7 @@ namespace GettingStartedCS.main.StructureInfo
         {
             if (string.IsNullOrWhiteSpace(type)) return default;
             string t = type.Trim();
-            if (t == "var" || t == "dynamic" || t[0] == '(') return default;   // unknown / tuple
+            if (t == "var" || t == "dynamic" || t[0] == '(') return default;   
 
             string b = BaseName(t);
             if (b.Length == 0 || _primitives.Contains(b)) return default;
@@ -59,21 +53,15 @@ namespace GettingStartedCS.main.StructureInfo
 
     public sealed class MethodAnalysisOptions
     {
-        /// <summary>Calls ignored by the analysis (IgnorableCalls). Matches the full name or the last segment.</summary>
         public ISet<string> IgnoredCalls { get; init; } =
             new HashSet<string> { "nameof", "ToString", "GetType", "GetHashCode" };
 
         public TypeClassifier Types { get; init; } = new();
     }
 
-    // =====================================================================
-    //  Class context  (what classModel hands to findDataAfterCollection)
-    // =====================================================================
-
     public sealed class ClassMemberContext
     {
         public string ClassName { get; }
-        /// <summary>Fields + properties (+ positional record parameters): name -> declared type.</summary>
         public IReadOnlyDictionary<string, string> DataMembers { get; }
         public ISet<string> MethodNames { get; }
 
@@ -114,10 +102,6 @@ namespace GettingStartedCS.main.StructureInfo
         }
     }
 
-    // =====================================================================
-    //  Extracted facts  (the private fields of methodModel)
-    // =====================================================================
-
     public sealed class MethodFacts
     {
         public string Name = "";
@@ -153,10 +137,6 @@ namespace GettingStartedCS.main.StructureInfo
         public List<string> ModifiedDataMembers { get; } = new();
         public List<string> CalledClassMethods { get; } = new();
     }
-
-    // =====================================================================
-    //  Extractor
-    // =====================================================================
 
     public static class MethodFactsExtractor
     {
@@ -372,7 +352,6 @@ namespace GettingStartedCS.main.StructureInfo
                 }
             }
 
-            /// <summary>`a`, `this.a`, `base.a`, `ClassName.a` only. Anything longer is not a "simple" reference.</summary>
             private List<string>? PlainReference(ExpressionSyntax e)
             {
                 switch (e)
@@ -701,7 +680,6 @@ namespace GettingStartedCS.main.StructureInfo
                 }
             }
 
-            /// <summary>Flattens an access chain into identifiers. Returns an empty list if the root is not a name.</summary>
             private static List<string> Flatten(ExpressionSyntax? e)
             {
                 var list = new List<string>();

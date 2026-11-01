@@ -98,6 +98,7 @@ namespace GettingStartedCS.main.Identifier
 
                         double score = 0;
                         if (s.HasIdentity) score += 3;
+                        if (!s.AllStateReadOnly) score += 3;
                         if (entityStereotype) score += 3;
                         if (entityStereotype && !s.HasIdentity)
                             score += s.HasStructuralEquality ? -3 : 1;
