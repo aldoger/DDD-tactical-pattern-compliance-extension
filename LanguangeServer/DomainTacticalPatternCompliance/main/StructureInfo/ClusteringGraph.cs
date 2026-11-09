@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GettingStartedCS.Main.StructureInfo
+namespace DomainTacticalPatternCompliance.Main.StructureInfo
 {
     /// <summary>Jenis edge ClusteringGraph (Iliopoulos 2025, 4.2.2).</summary>
     public enum EdgeType

@@ -1,12 +1,12 @@
-﻿using GettingStartedCS.main.Identifier;
-using GettingStartedCS.main.StructureInfo;
-using GettingStartedCS.parser;
+﻿using DomainTacticalPatternCompliance.main.Identifier;
+using DomainTacticalPatternCompliance.main.StructureInfo;
+using DomainTacticalPatternCompliance.parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace GettingStartedCS.main.CodeValidation
+namespace DomainTacticalPatternCompliance.main.CodeValidation
 {
     public class RepositoryValidator : DomainObjectValidate
     {

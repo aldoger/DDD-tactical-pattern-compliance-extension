@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace GettingStartedCS.parser
+namespace DomainTacticalPatternCompliance.parser
 {
     public class Parser
     {

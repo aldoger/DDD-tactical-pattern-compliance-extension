@@ -1,9 +1,9 @@
-﻿using GettingStartedCS.main.Identifier;
+﻿using DomainTacticalPatternCompliance.main.Identifier;
 using System;
-using GettingStartedCS.main.StructureInfo;
-using GettingStartedCS.parser;
+using DomainTacticalPatternCompliance.main.StructureInfo;
+using DomainTacticalPatternCompliance.parser;
 
-namespace GettingStartedCS.main.CodeValidation
+namespace DomainTacticalPatternCompliance.main.CodeValidation
 {
     public class ValueObjectValidator : DomainObjectValidate
     {

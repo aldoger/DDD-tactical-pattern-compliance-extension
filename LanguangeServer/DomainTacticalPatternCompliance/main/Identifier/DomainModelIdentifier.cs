@@ -1,11 +1,11 @@
 #nullable enable
-using GettingStartedCS.main.StructureInfo;
+using DomainTacticalPatternCompliance.main.StructureInfo;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace GettingStartedCS.main.Identifier
+namespace DomainTacticalPatternCompliance.main.Identifier
 {
     public static class DomainModelIdentifier
     {

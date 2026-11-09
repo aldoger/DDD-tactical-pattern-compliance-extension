@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GettingStartedCS.main.CodeValidation
+namespace DomainTacticalPatternCompliance.main.CodeValidation
 {
     public enum Constraint
     {

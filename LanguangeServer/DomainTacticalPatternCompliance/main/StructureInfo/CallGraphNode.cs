@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GettingStartedCS.Main.StructureInfo
+namespace DomainTacticalPatternCompliance.Main.StructureInfo
 {
     /// <summary>
     /// "Entity A memanggil constructor entity B" (Iliopoulos 2025, 4.2.1). Bahan edge OWNERSHIP.

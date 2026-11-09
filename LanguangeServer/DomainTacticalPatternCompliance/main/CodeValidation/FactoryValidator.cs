@@ -1,10 +1,10 @@
-﻿using GettingStartedCS.main.Identifier;
-using GettingStartedCS.main.StructureInfo;
+﻿using DomainTacticalPatternCompliance.main.Identifier;
+using DomainTacticalPatternCompliance.main.StructureInfo;
 using System;
-using GettingStartedCS.parser;
-using GettingStartedCS.Util;
+using DomainTacticalPatternCompliance.parser;
+using DomainTacticalPatternCompliance.Util;
 
-namespace GettingStartedCS.main.CodeValidation
+namespace DomainTacticalPatternCompliance.main.CodeValidation
 {
     public class FactoryValidator : DomainObjectValidate
     {

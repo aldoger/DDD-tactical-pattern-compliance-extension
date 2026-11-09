@@ -1,13 +1,13 @@
-﻿using GettingStartedCS.main.StructureInfo;
-using GettingStartedCS.main.CodeValidation;
-using GettingStartedCS.main.Identifier;
+﻿using DomainTacticalPatternCompliance.main.StructureInfo;
+using DomainTacticalPatternCompliance.main.CodeValidation;
+using DomainTacticalPatternCompliance.main.Identifier;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using GettingStartedCS.Main.Identifier;
+using DomainTacticalPatternCompliance.Main.Identifier;
 
-namespace GettingStartedCS
+namespace DomainTacticalPatternCompliance
 {
     internal class Program
     {

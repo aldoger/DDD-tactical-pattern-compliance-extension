@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GettingStartedCS.main.StructureInfo
+namespace DomainTacticalPatternCompliance.main.StructureInfo
 {
     public readonly record struct TypeTraits(bool NonPrimitive, bool External);
 

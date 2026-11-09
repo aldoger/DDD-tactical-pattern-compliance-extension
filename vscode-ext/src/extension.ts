@@ -4,7 +4,7 @@ import { spawn } from 'child_process';
 import * as vscode from 'vscode';
 
 /** Published C# analyzer, relative to the extension root (`dotnet publish -c Release -o <extension>/server`). */
-const SERVER_DLL = path.join('server', 'GettingStartedCS.dll');
+const SERVER_DLL = path.join('server', 'DomainTacticalPatternCompliance.dll');
 
 /** Folders that never contain hand-written source: build output, VCS and tooling. */
 const SKIPPED_DIRS = new Set(['bin', 'obj', '.git', '.vs', '.vscode', 'node_modules']);

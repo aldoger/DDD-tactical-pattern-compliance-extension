@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace GettingStartedCS.main.Identifier
+namespace DomainTacticalPatternCompliance.main.Identifier
 {
     public enum NameKind { None, Service, Factory, Repository }
 

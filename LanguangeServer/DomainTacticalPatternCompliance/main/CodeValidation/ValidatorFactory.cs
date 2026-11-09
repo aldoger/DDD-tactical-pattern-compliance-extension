@@ -1,8 +1,8 @@
-﻿using GettingStartedCS.main.StructureInfo;
+﻿using DomainTacticalPatternCompliance.main.StructureInfo;
 using System;
-using GettingStartedCS.parser;
+using DomainTacticalPatternCompliance.parser;
 
-namespace GettingStartedCS.main.CodeValidation
+namespace DomainTacticalPatternCompliance.main.CodeValidation
 {
     public class ValidatorFactory
     {

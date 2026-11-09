@@ -1,4 +1,4 @@
-﻿using GettingStartedCS.main.Identifier;
+﻿using DomainTacticalPatternCompliance.main.Identifier;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GettingStartedCS.main.StructureInfo
+namespace DomainTacticalPatternCompliance.main.StructureInfo
 {
     public class MethodStructureInfo
     {

@@ -1,12 +1,12 @@
-﻿using GettingStartedCS.main.Identifier;
-using GettingStartedCS.main.StructureInfo;
+﻿using DomainTacticalPatternCompliance.main.Identifier;
+using DomainTacticalPatternCompliance.main.StructureInfo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GettingStartedCS.Util
+namespace DomainTacticalPatternCompliance.Util
 {
     public static class Util
     {

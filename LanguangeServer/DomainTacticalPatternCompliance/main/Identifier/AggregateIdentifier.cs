@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using GettingStartedCS.main.Identifier;
-using GettingStartedCS.main.StructureInfo;
-using GettingStartedCS.Main.StructureInfo;
+using DomainTacticalPatternCompliance.main.Identifier;
+using DomainTacticalPatternCompliance.main.StructureInfo;
+using DomainTacticalPatternCompliance.Main.StructureInfo;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace GettingStartedCS.Main.Identifier
+namespace DomainTacticalPatternCompliance.Main.Identifier
 {
     // =====================================================================================
     //  Identifikasi aggregate berdasarkan Iliopoulos (2025), Bab 4, varian DOMAIN-ONLY:
