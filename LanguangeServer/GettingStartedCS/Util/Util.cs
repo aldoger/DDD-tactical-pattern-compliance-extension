@@ -56,6 +56,12 @@ namespace GettingStartedCS.Util
             var sb = new StringBuilder();
             foreach (var dm in domainModelList.DomainModels)
             {
+                if (dm is Aggregate aggregate)
+                {
+                    sb.AppendLine($"Domain Model: {dm.Name} [{dm.DomainType} {aggregate.AggregateType.ToText()}]");
+                    sb.AppendLine($"  Root: {aggregate.RootName ?? "-"}");
+                    continue;
+                }
                 sb.AppendLine($"Domain Model: {dm.Name} [{dm.DomainType}]");
                 if (dm is Entity entity && entity.ClassInfo != null)
                 {

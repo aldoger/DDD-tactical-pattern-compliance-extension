@@ -64,6 +64,12 @@ namespace GettingStartedCS.Main.Identifier
         public List<string> Enums { get; init; } = new();
         public List<string> Warnings { get; init; } = new();
         public IEnumerable<string> Members => Entities.Concat(ValueObjects).Concat(Enums);
+
+        /// <summary>Tipe tiap anggota: root → AGGREGATE_ROOT, anggota lain → AGGREGATE_PART. Kosong bila cluster tanpa root.</summary>
+        public Dictionary<string, AggregateType> MemberTypes { get; init; } = new();
+
+        public AggregateType? TypeOf(string member) => MemberTypes.TryGetValue(member, out var t) ? t : null;
+        public IEnumerable<string> Parts => MemberTypes.Where(kv => kv.Value == AggregateType.AGGREGATE_PART).Select(kv => kv.Key);
     }
 
     public sealed class AggregateIdentificationResult
@@ -141,10 +147,11 @@ namespace GettingStartedCS.Main.Identifier
             int i = 1;
             foreach (var a in list)
             {
+                string Tagged(IEnumerable<string> xs) => string.Join(", ", xs.Select(x => a.TypeOf(x) is { } t ? $"{x} [{t.ToText()}]" : x));
                 sb.AppendLine($"  Aggregate {i++}: root = {a.Root ?? "-"} ({a.RootReason})");
-                sb.AppendLine($"     entity   : {(a.Entities.Count > 0 ? string.Join(", ", a.Entities) : "-")}");
-                if (a.ValueObjects.Count > 0) sb.AppendLine($"     value obj: {string.Join(", ", a.ValueObjects)}");
-                if (a.Enums.Count > 0) sb.AppendLine($"     enum     : {string.Join(", ", a.Enums)}");
+                sb.AppendLine($"     entity   : {(a.Entities.Count > 0 ? Tagged(a.Entities) : "-")}");
+                if (a.ValueObjects.Count > 0) sb.AppendLine($"     value obj: {Tagged(a.ValueObjects)}");
+                if (a.Enums.Count > 0) sb.AppendLine($"     enum     : {Tagged(a.Enums)}");
                 foreach (var w in a.Warnings) sb.AppendLine($"     ⚠ {w}");
             }
         }
@@ -220,7 +227,7 @@ namespace GettingStartedCS.Main.Identifier
                     var info = ctx.Class(name);
                     if (info == null) continue;
                     var agg = new Aggregate(name, info);
-                    agg.SetAggregateType(name == cand.Root ? AggregateType.AGGREGATE_ROOT : AggregateType.AGGREGATE_PART);
+                    agg.SetAggregateType(cand.TypeOf(name) ?? AggregateType.AGGREGATE_PART);
                     agg.SetRootName(cand.Root!);
                     dms.AddDomainModel(agg);
                 }
@@ -270,6 +277,11 @@ namespace GettingStartedCS.Main.Identifier
             }
             else warnings.Add("cluster tanpa entity (hanya value object/enum)");
 
+            var memberTypes = new Dictionary<string, AggregateType>();
+            if (root != null)
+                foreach (var m in entities.Concat(vos).Concat(enums))
+                    memberTypes[m] = m == root ? AggregateType.AGGREGATE_ROOT : AggregateType.AGGREGATE_PART;
+
             return new AggregateCandidate
             {
                 Root = root,
@@ -277,7 +289,8 @@ namespace GettingStartedCS.Main.Identifier
                 Entities = entities,
                 ValueObjects = vos,
                 Enums = enums,
-                Warnings = warnings
+                Warnings = warnings,
+                MemberTypes = memberTypes
             };
         }
     }

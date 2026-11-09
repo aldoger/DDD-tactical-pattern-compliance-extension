@@ -461,8 +461,6 @@ namespace GettingStartedCS
                DomainModelIdentifier.IdentifyDomainModels(c, domainModelList);
             }
 
-            Util.Util.PrintStereotypes(classStructureInfoList.Classes);
-
             // TODO: make algorithm to identify publisher and subscriber from domain events
 
             var aggregateIdentifier = new AggregateIdentifier(parser.Compilation);
@@ -472,32 +470,7 @@ namespace GettingStartedCS
 
             var domainModelListOutput = Util.Util.PrintDomainModelList(domainModelList);
 
-            Console.WriteLine(domainModelListOutput);
-
             return;
-
-            foreach (var domainModel in domainModelList.DomainModels)
-            {
-                Console.WriteLine($"Domain Model: {domainModel.Name} ({domainModel.DomainType})");
-                var validator = ValidatorFactory.GetValidator(domainModel, parser);
-                if (validator != null)
-                {
-                    ViolationList vlist = new ViolationList();
-                    validator.Validate(domainModel, vlist, domainModelList);
-                    if (vlist.Violations.Count > 0)
-                    {
-                        Console.WriteLine($"Violations for {domainModel.Name} ({domainModel.DomainType}):");
-                        foreach (var violation in vlist.Violations)
-                        {
-                            Console.WriteLine($"- {violation.Constraint}: {violation.Message}");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"No violations for {domainModel.Name} ({domainModel.DomainType}).");
-                    }
-                }
-            }
         }
         
 

@@ -1,49 +1,157 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace GettingStartedCS.parser
 {
     public class Parser
     {
-        private SyntaxTree tree;
-        private CompilationUnitSyntax root;
-        private Compilation compilation;
-        private SemanticModel semanticModel;
+        /// <summary>
+        /// The global usings that SDK-style projects with &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt; get from
+        /// obj/.../GlobalUsings.g.cs. The extension skips obj/, so they are added here instead; without them,
+        /// files that rely on implicit usings can't resolve Guid, Task, List&lt;T&gt;, ...
+        /// Overlapping with a file's own usings is harmless.
+        /// </summary>
+        private const string ImplicitGlobalUsings = @"
+global using global::System;
+global using global::System.Collections.Generic;
+global using global::System.IO;
+global using global::System.Linq;
+global using global::System.Net.Http;
+global using global::System.Threading;
+global using global::System.Threading.Tasks;
+";
+
+        private static readonly CSharpParseOptions ParseOptions =
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+
+        /// <summary>The .NET base class library, loaded once per process.</summary>
+        private static readonly Lazy<IReadOnlyList<MetadataReference>> FrameworkReferences =
+            new(LoadFrameworkReferences);
+
+        private IReadOnlyList<SyntaxTree> trees = Array.Empty<SyntaxTree>();
+        private Compilation? compilation;
+        private readonly Dictionary<SyntaxTree, SemanticModel> semanticModels = new();
 
         public Parser()
         {
-            semanticModel = null;
         }
 
+        /// <summary>
+        /// Parses every file into its own SyntaxTree and builds ONE Compilation over all of them,
+        /// so types in one file can reference types in another (Residence → Address).
+        /// The file path is stored in each tree, so every Location points back to the real file and line.
+        /// </summary>
+        /// <param name="filePaths">The .cs files to analyze.</param>
+        /// <param name="addImplicitUsings">
+        /// Add the SDK's implicit global usings. Turn off for projects that don't use ImplicitUsings
+        /// if it causes ambiguous type names.
+        /// </param>
+        public void ParseFiles(IEnumerable<string> filePaths, bool addImplicitUsings = true)
+        {
+            var parsed = new List<SyntaxTree>();
+
+            foreach (var path in filePaths.Distinct())
+            {
+                try
+                {
+                    var text = File.ReadAllText(path);
+                    parsed.Add(CSharpSyntaxTree.ParseText(text, ParseOptions, path));
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    // A file deleted or locked since the extension listed it shouldn't fail the whole run.
+                    // stderr, because stdout carries only the JSON result.
+                    Console.Error.WriteLine($"Skipping {path}: {ex.Message}");
+                }
+            }
+
+            BuildCompilation(parsed, addImplicitUsings);
+        }
+
+        /// <summary>Parses a single source string (handy for tests). Same pipeline as <see cref="ParseFiles"/>.</summary>
         public void Parse(string input)
         {
-            this.tree = CSharpSyntaxTree.ParseText(input);
-            this.root = (CompilationUnitSyntax)tree.GetRoot();
+            var tree = CSharpSyntaxTree.ParseText(input, ParseOptions, path: "input.cs");
+            BuildCompilation(new[] { tree }, addImplicitUsings: true);
+        }
 
-            // Build a Compilation from this tree so the SemanticModel has
-            // something to bind symbols against.
-            var references = new[]
+        private void BuildCompilation(IReadOnlyList<SyntaxTree> sourceTrees, bool addImplicitUsings)
+        {
+            trees = sourceTrees;
+            semanticModels.Clear();
+
+            IEnumerable<SyntaxTree> allTrees = sourceTrees;
+            if (addImplicitUsings)
             {
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location) // System.Private.CoreLib
-            };
+                allTrees = allTrees.Append(
+                    CSharpSyntaxTree.ParseText(ImplicitGlobalUsings, ParseOptions, path: "ImplicitUsings.g.cs"));
+            }
 
-            this.compilation = CSharpCompilation.Create("ParserAssembly")
-                .AddReferences(references)
-                .AddSyntaxTrees(tree);
+            compilation = CSharpCompilation.Create(
+                "DddAnalysis",
+                syntaxTrees: allTrees,
+                references: FrameworkReferences.Value,
+                options: new CSharpCompilationOptions(
+                    OutputKind.DynamicallyLinkedLibrary,
+                    nullableContextOptions: NullableContextOptions.Enable));
+        }
 
-            // The SemanticModel is scoped to ONE tree, obtained from the Compilation
-            this.semanticModel = compilation.GetSemanticModel(tree);
+        /// <summary>
+        /// References every assembly of the .NET runtime this analyzer runs on (System.Runtime,
+        /// System.Collections, System.Collections.Concurrent, ...), so BCL types like HashSet&lt;T&gt;,
+        /// ConcurrentDictionary and Task resolve. Assemblies of the analyzer itself (Roslyn, etc.)
+        /// are left out.
+        /// </summary>
+        private static IReadOnlyList<MetadataReference> LoadFrameworkReferences()
+        {
+            var coreLib = typeof(object).Assembly.Location;
+            var frameworkDir = Path.GetDirectoryName(coreLib);
+
+            var trustedAssemblies = (AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string ?? string.Empty)
+                .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries);
+
+            var references = trustedAssemblies
+                .Where(p => string.Equals(Path.GetDirectoryName(p), frameworkDir, StringComparison.OrdinalIgnoreCase))
+                .Select(p => (MetadataReference)MetadataReference.CreateFromFile(p))
+                .ToList();
+
+            if (references.Count == 0)
+            {
+                references.Add(MetadataReference.CreateFromFile(coreLib));
+            }
+
+            return references;
         }
 
         /// <summary>Compilation berisi syntax tree yang di-parse. Dipakai AggregateIdentifier untuk SemanticModel.</summary>
-        public Compilation Compilation => compilation;
+        public Compilation Compilation =>
+            compilation ?? throw new InvalidOperationException("Call Parse or ParseFiles first.");
+
+        /// <summary>The parsed source files (without the generated implicit-usings file).</summary>
+        public IReadOnlyList<SyntaxTree> SyntaxTrees => trees;
+
+        /// <summary>
+        /// A SemanticModel is scoped to ONE tree, so always get it for the tree the node lives in.
+        /// Models are cached per tree.
+        /// </summary>
+        public SemanticModel GetSemanticModel(SyntaxNode node)
+        {
+            if (!semanticModels.TryGetValue(node.SyntaxTree, out var model))
+            {
+                model = Compilation.GetSemanticModel(node.SyntaxTree);
+                semanticModels[node.SyntaxTree] = model;
+            }
+            return model;
+        }
 
         public IEnumerable<ClassDeclarationSyntax> GetClasses()
         {
-            return root.DescendantNodes().OfType<ClassDeclarationSyntax>();
+            return trees.SelectMany(t => t.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>());
         }
 
         public IEnumerable<MethodDeclarationSyntax> GetMethods(ClassDeclarationSyntax classDeclaration)

@@ -15,26 +15,43 @@ namespace GettingStartedCS.main.CodeValidation
             throw new NotImplementedException();
         }
 
-        private void ValidateConstraintC17(Aggregate aggregate, ViolationList vlist, DomainModelList domainList)
+        private bool ValidateConstraintC17(Aggregate aggregate, DomainModelList domainList)
         {
-            if (aggregate.ClassInfo == null) return;
-            
+            if (aggregate.ClassInfo == null) return false;
+            var name = aggregate.ClassInfo.ClassName;
+            var domainModel = domainList.GetDomainModelFirst(name);
+            if(domainModel == null || domainModel is not Entity)
+            {
+                return false;
+            }
+            return true;
         }
 
-        private void ValidateConstraintC18(Aggregate aggregate, ViolationList vlist, DomainModelList domainList)
+        private bool ValidateConstraintC18(Aggregate aggregate, DomainModelList domainList)
         {
-            if (aggregate.ClassInfo == null) return;
-
+            if (aggregate.ClassInfo == null) return false;
+            var name = aggregate.ClassInfo.ClassName;
+            var domainModel = domainList.GetDomainModelFirst(name);
+            if (domainModel == null || (domainModel is not Entity && domainModel is not ValueObject))
+            {
+                return false;
+            }
+            return true;
         }
 
-        private void ValidateConstraintC19(Aggregate aggregate, ViolationList vlist, DomainModelList domainList)
+        private bool ValidateConstraintC19(Aggregate aggregate, DomainModelList domainList)
         {
-            if (aggregate.ClassInfo == null) return;
+            /*
+             The reference of an aggregate part cannot
+            be held by the outside objects.     
+             */
+            return true;
         }
 
-        private void ValidateConstraintC20(Aggregate aggregate, ViolationList vlist, DomainModelList domainList)
+        private bool ValidateConstraintC20(Aggregate aggregate, DomainModelList domainList)
         {
-            if (aggregate.ClassInfo == null) return;
+            if (aggregate.ClassInfo == null) return false;
+
         }
 
         private void ValidateConstraintC21(Aggregate aggregate, ViolationList vlist, DomainModelList domainList)

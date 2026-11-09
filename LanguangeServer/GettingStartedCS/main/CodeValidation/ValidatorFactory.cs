@@ -22,8 +22,6 @@ namespace GettingStartedCS.main.CodeValidation
                     return new RepositoryValidator(par);
                 case Factory:
                     return new FactoryValidator(par);
-                case Aggregate:
-                    return new AggregateValidator(par);
                 default:
                     throw new ArgumentOutOfRangeException(
                         nameof(domainType),
