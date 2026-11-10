@@ -343,6 +343,15 @@ namespace DomainTacticalPatternCompliance
                     }
                 }
 
+                public class AddressFactory
+                {
+                    public Address Create(string street, string city, string province,
+                                          string postalCode, string country)
+                    {
+                        return Address.Create(street, city, province, postalCode, country);
+                    }
+                }
+
                 public interface IHumanRepository
                 {
                     Task<Human?> GetByIdAsync(Guid id, CancellationToken ct = default);
@@ -477,14 +486,21 @@ namespace DomainTacticalPatternCompliance
                 validator.Validate(dm, vlist, domainModelList);
             }
 
-            // Begin validate aggregate constraints
-
-            AggregateValidator aggregateValidator = new AggregateValidator(parser);
+            AggregateValidator aggregateValidator = new AggregateValidator();
             
             aggregateValidator.Validate(aggResult, vlist, domainModelList);
 
-
-            return;
+            if (vlist.Violations.Count == 0)
+            {
+                Console.WriteLine("No violations found.");
+            }
+            else
+            {
+                foreach (var violation in vlist.Violations)
+                {
+                    Console.WriteLine(violation.ToString());
+                }
+            }
         }
     }
 }
