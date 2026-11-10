@@ -67,6 +67,7 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
     {
         public bool IsClass;
         public bool IsMethod;
+        public string? ReturnType;
         public ClassStructureInfo? ClassInfo;
         public MethodStructureInfo? MethodInfo;
         public void SetClassInfo(ClassStructureInfo classInfo)
@@ -89,6 +90,7 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
     }
     public class Repository : DomainModelStruct
     {
+        public string? AccessedType;
         public ClassStructureInfo? ClassInfo;
         public Repository(string name, ClassStructureInfo classInfo)
             : base(name, "Repository")

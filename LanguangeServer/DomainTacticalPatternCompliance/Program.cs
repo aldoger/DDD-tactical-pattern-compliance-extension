@@ -466,9 +466,17 @@ namespace DomainTacticalPatternCompliance
             var aggregateIdentifier = new AggregateIdentifier(parser.Compilation);
             var aggResult = aggregateIdentifier.Identify(domainModelList);
 
-            aggregateIdentifier.RegisterAggregates(domainModelList, aggResult, ClusteringAlgorithm.Strict);
-
             var domainModelListOutput = Util.Util.PrintDomainModelList(domainModelList);
+
+            var vlist = new ViolationList();
+
+            foreach (var dm in domainModelList.DomainModels)
+            {
+                var validator = ValidatorFactory.GetValidator(dm, parser);
+                validator.Validate(dm, vlist, domainModelList);
+            }
+
+            // Begin validate aggregate constraints
 
             return;
         }

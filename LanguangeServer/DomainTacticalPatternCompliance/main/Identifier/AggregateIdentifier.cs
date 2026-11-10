@@ -210,30 +210,6 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
             };
         }
 
-        /// <summary>
-        /// Daftarkan hasil ke DomainModelList sebagai objek Aggregate (root / part).
-        /// Value object ikut didaftarkan sebagai part (C18). Enum tidak punya ClassStructureInfo, jadi dilewati.
-        /// </summary>
-        public void RegisterAggregates(DomainModelList dms, AggregateIdentificationResult result,
-                                       ClusteringAlgorithm algorithm = ClusteringAlgorithm.Strict)
-        {
-            var ctx = new DomainContext(dms, _compilation);
-            var list = algorithm == ClusteringAlgorithm.Strict ? result.StrictAggregates : result.LouvainAggregates;
-
-            foreach (var cand in list.Where(c => c.Root != null))
-            {
-                foreach (var name in cand.Entities.Concat(cand.ValueObjects))
-                {
-                    var info = ctx.Class(name);
-                    if (info == null) continue;
-                    var agg = new Aggregate(name, info);
-                    agg.SetAggregateType(cand.TypeOf(name) ?? AggregateType.AGGREGATE_PART);
-                    agg.SetRootName(cand.Root!);
-                    dms.AddDomainModel(agg);
-                }
-            }
-        }
-
         // ---------------------------------------------------------------- deskripsi cluster
 
         private static AggregateCandidate Describe(HashSet<string> cluster, ClusteringGraph g, DomainContext ctx)
@@ -274,6 +250,8 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
                     if (e != root && repos.Count > 0)
                         warnings.Add($"entity bagian {e} punya repository sendiri ({string.Join(", ", repos)}) → kandidat pelanggaran C23 / batas aggregate keliru");
                 }
+
+                // [EKSTENSI] validasi dengan factory: pembuatan aggregate (ROOT atau PART) dilakukan dengan factory
             }
             else warnings.Add("cluster tanpa entity (hanya value object/enum)");
 
@@ -306,6 +284,7 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
         private readonly Dictionary<string, ClassStructureInfo> _classes = new(StringComparer.Ordinal);
         private readonly Dictionary<SyntaxNode, MethodStructureInfo> _methodInfos = new();
         private readonly Dictionary<string, List<string>> _repoAccess = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, List<string>> _factoryCreated = new(StringComparer.Ordinal);
 
         public HashSet<string> Entities { get; } = new(StringComparer.Ordinal);
         public HashSet<string> ValueObjects { get; } = new(StringComparer.Ordinal);
@@ -359,6 +338,24 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
                     {
                         if (!_repoAccess.TryGetValue(n, out var l)) _repoAccess[n] = l = new List<string>();
                         if (!l.Contains(repo)) l.Add(repo);
+                    }
+                }
+            // factory → entity yang dibuatnya (tipe return), sama seperti C12
+            foreach (var factory in FactoryClasses)
+                foreach (var m in _classes[factory].Methods)
+                {
+                    var entityNames = TypeNames(m.MethodDeclaration.ReturnType).Where(Entities.Contains);
+                    foreach (var n in entityNames)
+                    {
+                        if (!_factoryCreated.TryGetValue(n, out var l)) _factoryCreated[n] = l = new List<string>();
+                        if (!l.Contains(factory)) l.Add(factory);
+                    }
+
+                    var voNames = TypeNames(m.MethodDeclaration.ReturnType).Where(ValueObjects.Contains);
+                    foreach (var n in voNames)
+                    {
+                        if (!_factoryCreated.TryGetValue(n, out var l)) _factoryCreated[n] = l = new List<string>();
+                        if (!l.Contains(factory)) l.Add(factory);
                     }
                 }
         }
