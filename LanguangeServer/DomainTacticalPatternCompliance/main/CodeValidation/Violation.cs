@@ -8,7 +8,7 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
 {
     public class Violation
     {
-        public string className;
+        public string ClassName { get; }    
         public Constraint Constraint { get; }
         public string Message { get; }
         public Violation(
@@ -17,9 +17,14 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
             string message
         )
         {
-            this.className = className;
+            ClassName = className;
             Constraint = constraint;
             Message = message;
+        }
+
+        public override string ToString()
+        {
+            return $"Class: {ClassName} violates constraint: {(int)Constraint}. Description: {Message}";
         }
     }
 

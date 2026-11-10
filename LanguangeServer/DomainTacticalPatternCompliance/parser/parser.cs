@@ -10,12 +10,6 @@ namespace DomainTacticalPatternCompliance.parser
 {
     public class Parser
     {
-        /// <summary>
-        /// The global usings that SDK-style projects with &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt; get from
-        /// obj/.../GlobalUsings.g.cs. The extension skips obj/, so they are added here instead; without them,
-        /// files that rely on implicit usings can't resolve Guid, Task, List&lt;T&gt;, ...
-        /// Overlapping with a file's own usings is harmless.
-        /// </summary>
         private const string ImplicitGlobalUsings = @"
 global using global::System;
 global using global::System.Collections.Generic;
@@ -101,12 +95,6 @@ global using global::System.Threading.Tasks;
                     nullableContextOptions: NullableContextOptions.Enable));
         }
 
-        /// <summary>
-        /// References every assembly of the .NET runtime this analyzer runs on (System.Runtime,
-        /// System.Collections, System.Collections.Concurrent, ...), so BCL types like HashSet&lt;T&gt;,
-        /// ConcurrentDictionary and Task resolve. Assemblies of the analyzer itself (Roslyn, etc.)
-        /// are left out.
-        /// </summary>
         private static IReadOnlyList<MetadataReference> LoadFrameworkReferences()
         {
             var coreLib = typeof(object).Assembly.Location;
@@ -128,17 +116,11 @@ global using global::System.Threading.Tasks;
             return references;
         }
 
-        /// <summary>Compilation berisi syntax tree yang di-parse. Dipakai AggregateIdentifier untuk SemanticModel.</summary>
         public Compilation Compilation =>
             compilation ?? throw new InvalidOperationException("Call Parse or ParseFiles first.");
 
-        /// <summary>The parsed source files (without the generated implicit-usings file).</summary>
         public IReadOnlyList<SyntaxTree> SyntaxTrees => trees;
 
-        /// <summary>
-        /// A SemanticModel is scoped to ONE tree, so always get it for the tree the node lives in.
-        /// Models are cached per tree.
-        /// </summary>
         public SemanticModel GetSemanticModel(SyntaxNode node)
         {
             if (!semanticModels.TryGetValue(node.SyntaxTree, out var model))
@@ -178,17 +160,12 @@ global using global::System.Threading.Tasks;
         {
             return methodDeclaration.ReturnType.ToString();
         }
-        /// <summary>Semua parameter sebuah method.</summary>
+        
         public IEnumerable<ParameterSyntax> GetMethodParameters(MethodDeclarationSyntax methodDeclaration)
         {
             return methodDeclaration.ParameterList.Parameters;
         }
 
-        /// <summary>
-        /// Semua nama tipe yang disebut dalam sebuah tipe, termasuk argumen generic.
-        /// Task&lt;IReadOnlyList&lt;Human?&gt;&gt; -> Task, IReadOnlyList, Human
-        /// System.Guid -> Guid,  Order[] -> Order,  (Order, Money) -> Order, Money
-        /// </summary>
         public IEnumerable<string> GetTypeNames(TypeSyntax? type)
         {
             switch (type)
@@ -227,7 +204,6 @@ global using global::System.Threading.Tasks;
                     break;
             }
         }
-
         public bool IsMethodStatic(MethodDeclarationSyntax methodDeclaration)
         {
             return methodDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword);
@@ -259,7 +235,6 @@ global using global::System.Threading.Tasks;
 
         public bool IsPropertyImmutable(PropertyDeclarationSyntax property)
         {
-            // Expression-bodied properties cannot be assigned through a setter.
             if (property.ExpressionBody != null)
                 return true;
 
@@ -277,8 +252,6 @@ global using global::System.Threading.Tasks;
             bool hasInit = accessors.Value.Any(a =>
                 a.IsKind(SyntaxKind.InitAccessorDeclaration));
 
-            // A getter is required, and neither setter nor init accessor is allowed
-            // under a strict getter-only policy.
             return hasGetter && !hasSetter && !hasInit;
         }
 

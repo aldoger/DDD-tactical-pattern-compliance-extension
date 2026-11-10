@@ -464,9 +464,10 @@ namespace DomainTacticalPatternCompliance
             // TODO: make algorithm to identify publisher and subscriber from domain events
 
             var aggregateIdentifier = new AggregateIdentifier(parser.Compilation);
+
             var aggResult = aggregateIdentifier.Identify(domainModelList);
 
-            var domainModelListOutput = Util.Util.PrintDomainModelList(domainModelList);
+            var sacResult = aggResult.StrictAggregates;
 
             var vlist = new ViolationList();
 
@@ -477,6 +478,11 @@ namespace DomainTacticalPatternCompliance
             }
 
             // Begin validate aggregate constraints
+
+            AggregateValidator aggregateValidator = new AggregateValidator(parser);
+            
+            aggregateValidator.Validate(aggResult, vlist, domainModelList);
+
 
             return;
         }

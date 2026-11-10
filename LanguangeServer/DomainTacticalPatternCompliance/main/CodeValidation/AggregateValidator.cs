@@ -16,7 +16,7 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
             Parser = par;
         }
 
-        public void Validate(AggregateCandidate aggregates, ViolationList vlist, DomainModelList domainList)
+        public void Validate(AggregateIdentificationResult aggResults, ViolationList vlist, DomainModelList domainList)
         {
             
         }
@@ -44,7 +44,11 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
 
         private bool ValidateConstraintC19(AggregateCandidate aggregate, DomainModelList domainList)
         {
-            
+            /* 
+             The reference of an aggregate part cannot
+             be held by the outside objects.
+             */
+            return true;
         }
 
         private bool ValidateConstraintC20(AggregateCandidate aggregate)
@@ -56,21 +60,37 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
 
         private bool ValidateConstraintC21()
         {
+            /* 
+             Except the aggregate root, an aggregate can
+             only contain aggregate parts.
+             */
             return true;
         }
 
         private bool ValidateConstraintC22(AggregateCandidate aggregate, DomainContext domainContext)
         {
-            
+            /*
+             The creation of an aggregate should be done
+             by a factory.
+             */
+            return true;
         }
 
         private bool ValidateConstraintC23(AggregateCandidate aggregate, DomainContext domainContext)
         {
-
+            /*
+             The accessing of an aggregate should be
+             done by a repository.
+             */
+            return true;
         }
 
         private bool ValidateConstraintC24()
         {
+            /* 
+             The objects within an aggregate should not
+             be crosscutting different bounded contexts.
+             */
             return true;
         }
     }

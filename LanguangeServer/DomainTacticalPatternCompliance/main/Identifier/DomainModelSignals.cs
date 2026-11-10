@@ -13,10 +13,6 @@ namespace DomainTacticalPatternCompliance.main.Identifier
 
     public enum DomainModelKind { Factory, Repository, DomainService, Entity, ValueObject }
 
-    /// <summary>
-    /// Structural evidence about a class, extracted from syntax. Used by
-    /// DomainModelIdentifier next to the class stereotypes.
-    /// </summary>
     public sealed record DomainModelSignals(
         bool HasIdentity,                  // Id or <ClassName>Id member
         int StateMemberCount,              // instance fields / auto-properties / record parameters

@@ -98,5 +98,7 @@ namespace DomainTacticalPatternCompliance.Util
             }
             return sb.ToString();
         }
+
+
     }
 }
