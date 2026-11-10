@@ -67,21 +67,23 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
             return true;
         }
 
-        private bool ValidateConstraintC22(AggregateCandidate aggregate, DomainContext domainContext)
+        private bool ValidateConstraintC22(AggregateIdentificationResult aggResult, DomainContext domainContext)
         {
-            /*
-             The creation of an aggregate should be done
-             by a factory.
-             */
+            var aggregates = aggResult.StrictAggregates;
+            foreach(var aggregate in aggregates)
+            {
+                
+            }
             return true;
         }
 
-        private bool ValidateConstraintC23(AggregateCandidate aggregate, DomainContext domainContext)
+        private bool ValidateConstraintC23(AggregateIdentificationResult aggResult, DomainContext domainContext)
         {
-            /*
-             The accessing of an aggregate should be
-             done by a repository.
-             */
+            var aggregates = aggResult.StrictAggregates;
+            foreach (var aggregate in aggregates)
+            {
+
+            }
             return true;
         }
 

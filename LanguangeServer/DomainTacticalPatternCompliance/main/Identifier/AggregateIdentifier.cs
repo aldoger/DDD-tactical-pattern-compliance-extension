@@ -64,10 +64,7 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
         public List<string> Enums { get; init; } = new();
         public List<string> Warnings { get; init; } = new();
         public IEnumerable<string> Members => Entities.Concat(ValueObjects).Concat(Enums);
-
-        /// <summary>Tipe tiap anggota: root → AGGREGATE_ROOT, anggota lain → AGGREGATE_PART. Kosong bila cluster tanpa root.</summary>
         public Dictionary<string, AggregateType> MemberTypes { get; init; } = new();
-
         public AggregateType? TypeOf(string member) => MemberTypes.TryGetValue(member, out var t) ? t : null;
         public IEnumerable<string> Parts => MemberTypes.Where(kv => kv.Value == AggregateType.AGGREGATE_PART).Select(kv => kv.Key);
     }
@@ -87,6 +84,19 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
         public int LouvainRuns { get; init; }
         public int LouvainFrequency { get; init; }
         public int LouvainDistinctConfigurations { get; init; }
+
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> RepositoryAccess { get; init; } = NoEntries;
+
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> FactoryCreation { get; init; } = NoEntries;
+
+        public IReadOnlyList<string> RepositoriesAccessing(string type) => Lookup(RepositoryAccess, type);
+        public IReadOnlyList<string> FactoriesCreating(string type) => Lookup(FactoryCreation, type);
+
+        private static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> NoEntries =
+            new Dictionary<string, IReadOnlyList<string>>();
+
+        private static IReadOnlyList<string> Lookup(IReadOnlyDictionary<string, IReadOnlyList<string>> map, string type) =>
+            map.TryGetValue(DomainContext.TypeOf(type), out var l) ? l : Array.Empty<string>();
 
         public string ToReport(bool showCallGraphs = true)
         {
@@ -165,8 +175,6 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
     {
         private readonly Compilation _compilation;
         private readonly AggregateIdentifierOptions _options;
-
-        /// <param name="compilation">Compilation yang memuat SEMUA syntax tree yang dianalisis (lihat Parser.Compilation).</param>
         public AggregateIdentifier(Compilation compilation, AggregateIdentifierOptions? options = null)
         {
             _compilation = compilation;
@@ -194,6 +202,8 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
 
             return new AggregateIdentificationResult
             {
+                RepositoryAccess = ctx.RepositoryAccessSnapshot(),
+                FactoryCreation = ctx.FactoryCreationSnapshot(),
                 CallGraphs = units,
                 ConstructorGraphs = ctors,
                 InitialGraph = initial,
@@ -285,13 +295,39 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
         private readonly Dictionary<SyntaxNode, MethodStructureInfo> _methodInfos = new();
         private readonly Dictionary<string, List<string>> _repoAccess = new(StringComparer.Ordinal);
         private readonly Dictionary<string, List<string>> _factoryCreated = new(StringComparer.Ordinal);
-
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> RepositoryAccessSnapshot() => Freeze(_repoAccess);
+        public IReadOnlyDictionary<string, IReadOnlyList<string>> FactoryCreationSnapshot() => Freeze(_factoryCreated);
         public HashSet<string> Entities { get; } = new(StringComparer.Ordinal);
         public HashSet<string> ValueObjects { get; } = new(StringComparer.Ordinal);
         public HashSet<string> Enums { get; } = new(StringComparer.Ordinal);
         public HashSet<string> DomainServices { get; } = new(StringComparer.Ordinal);
         public HashSet<string> FactoryClasses { get; } = new(StringComparer.Ordinal);
         public HashSet<string> Repositories { get; } = new(StringComparer.Ordinal);
+
+        private static IReadOnlyDictionary<string, IReadOnlyList<string>> Freeze(Dictionary<string, List<string>> map) =>
+          map.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<string>)kv.Value.ToArray(), StringComparer.Ordinal);
+
+        private static void AddUnique(Dictionary<string, List<string>> map, string key, string value)
+        {
+            if (!map.TryGetValue(key, out var list)) map[key] = list = new List<string>();
+            if (!list.Contains(value)) list.Add(value);
+        }
+
+        private IEnumerable<string> InstantiatedTypes(BaseMethodDeclarationSyntax decl)
+        {
+            SyntaxNode? body = (SyntaxNode?)decl.Body ?? decl.ExpressionBody;
+            if (body == null) yield break;
+
+            var sm = Model(decl.SyntaxTree);
+            foreach (var creation in body.DescendantNodes().OfType<BaseObjectCreationExpressionSyntax>())
+            {
+                string? name = sm.GetTypeInfo(creation).Type?.Name;
+                if (string.IsNullOrEmpty(name) && creation is ObjectCreationExpressionSyntax oc)
+                    name = TypeNames(oc.Type).FirstOrDefault();
+                if (!string.IsNullOrEmpty(name)) yield return name;
+            }
+        }
+
 
         public DomainContext(DomainModelList dms, Compilation compilation)
         {
@@ -323,12 +359,10 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
                 }
             }
 
-            // enum belum masuk DomainModelList (GetClasses hanya class) → ambil dari syntax tree
             foreach (var tree in compilation.SyntaxTrees)
                 foreach (var en in tree.GetRoot().DescendantNodes().OfType<EnumDeclarationSyntax>())
                     Enums.Add(en.Identifier.Text);
 
-            // repository → entity yang diaksesnya (tipe parameter & return), sama seperti C12
             foreach (var repo in Repositories)
                 foreach (var m in _classes[repo].Methods)
                 {
@@ -340,23 +374,15 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
                         if (!l.Contains(repo)) l.Add(repo);
                     }
                 }
-            // factory → entity yang dibuatnya (tipe return), sama seperti C12
+
             foreach (var factory in FactoryClasses)
                 foreach (var m in _classes[factory].Methods)
                 {
-                    var entityNames = TypeNames(m.MethodDeclaration.ReturnType).Where(Entities.Contains);
-                    foreach (var n in entityNames)
-                    {
-                        if (!_factoryCreated.TryGetValue(n, out var l)) _factoryCreated[n] = l = new List<string>();
-                        if (!l.Contains(factory)) l.Add(factory);
-                    }
-
-                    var voNames = TypeNames(m.MethodDeclaration.ReturnType).Where(ValueObjects.Contains);
-                    foreach (var n in voNames)
-                    {
-                        if (!_factoryCreated.TryGetValue(n, out var l)) _factoryCreated[n] = l = new List<string>();
-                        if (!l.Contains(factory)) l.Add(factory);
-                    }
+                    var created = TypeNames(m.MethodDeclaration.ReturnType)
+                        .Concat(InstantiatedTypes(m.MethodDeclaration))
+                        .Where(n => Entities.Contains(n) || ValueObjects.Contains(n));
+                    foreach (var n in created)
+                        AddUnique(_factoryCreated, n, factory);
                 }
         }
 
