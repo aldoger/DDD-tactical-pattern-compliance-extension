@@ -39,12 +39,23 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
                 if(!ValidateConstraintC20(aggregate))
                 {
                     // need modify name of aggregate to be more descriptive, like AggregateRootName
-                    vlist.AddViolation(new Violation(aggregate.Root, Constraint.CONSTRAINT_C20, ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C20)));
+                    Util.Util.AddViolation(vlist, aggregate.Root, Constraint.CONSTRAINT_C20);
                 }
             }
 
             // Validate constraint C21
+            foreach (var aggregate in aggResults.StrictAggregates)
+            {
 
+            }
+
+            // Validate constraint C22
+            ValidateConstraintC22(aggResults, vlist);
+
+            // Validate constraint C23
+            ValidateConstraintC23(aggResults, vlist);
+
+            // Validate constraint C24
         }
 
         private void ValidateConstraintC17(AggregateCandidate aggregate, ViolationList vlist, DomainModelList domainList)
@@ -52,7 +63,7 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
             var domain = domainList.GetDomainModelFirst(aggregate.Root);
             if (domain == null || domain is not Entity)
             {
-                vlist.AddViolation(new Violation(aggregate.Root, Constraint.CONSTRAINT_C17, ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C17)));
+                Util.Util.AddViolation(vlist, aggregate.Root, Constraint.CONSTRAINT_C17);
             }
         }
 
@@ -64,7 +75,7 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
                 var domain = domainList.GetDomainModelFirst(part);
                 if (domain is not Entity && domain is not ValueObject)
                 {
-                    vlist.AddViolation(new Violation(part, Constraint.CONSTRAINT_C18, ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C18)));
+                    Util.Util.AddViolation(vlist, part, Constraint.CONSTRAINT_C18);
                 }
             }
         }
@@ -82,7 +93,7 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
         {
             var roots = aggregate.MemberTypes.Where(a => a.Value == AggregateType.AGGREGATE_ROOT)
                 .Select(a => a.Key).ToList();
-            return roots.Count == 0;
+            return roots.Count == 1;
         }
 
         private bool ValidateConstraintC21()
@@ -94,7 +105,7 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
             return true;
         }
 
-        private void ValidateConstraintC22(AggregateIdentificationResult aggResult, ViolationList vlist, DomainContext domainContext)
+        private void ValidateConstraintC22(AggregateIdentificationResult aggResult, ViolationList vlist)
         {
             var aggregates = aggResult.StrictAggregates;
             foreach(var aggregate in aggregates)
@@ -102,7 +113,7 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
                 var root = aggregate.Root;
                 if (aggResult.FactoriesCreating(root).Count == 0)
                 {
-                    vlist.AddViolation(new Violation(root, Constraint.CONSTRAINT_C22, ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C22)));
+                    Util.Util.AddViolation(vlist, root, Constraint.CONSTRAINT_C22);
                 }
 
                 var parts = aggregate.Parts;
@@ -110,31 +121,19 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
                 {
                     if(aggResult.FactoriesCreating(part).Count == 0)
                     {
-                        vlist.AddViolation(new Violation(part, Constraint.CONSTRAINT_C22, ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C22)));
+                        Util.Util.AddViolation(vlist, part, Constraint.CONSTRAINT_C22);
                     }
                 }
             }
         }
 
-        private void ValidateConstraintC23(AggregateIdentificationResult aggResult, ViolationList vlist, DomainContext domainContext)
+        private void ValidateConstraintC23(AggregateIdentificationResult aggResult, ViolationList vlist)
         {
-            var aggregates = aggResult.StrictAggregates;
-            foreach (var aggregate in aggregates)
+            foreach (var aggregate in aggResult.StrictAggregates)
             {
                 var root = aggregate.Root;
                 if (aggResult.RepositoriesAccessing(root).Count == 0)
-                {
-                    vlist.AddViolation(new Violation(root, Constraint.CONSTRAINT_C23, ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C23)));
-                }
-
-                var parts = aggregate.Parts;
-                foreach (var part in parts)
-                {
-                    if (aggResult.RepositoriesAccessing(part).Count == 0)
-                    {
-                        vlist.AddViolation(new Violation(part, Constraint.CONSTRAINT_C23, ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C23)));
-                    }
-                }
+                    Util.Util.AddViolation(vlist, root, Constraint.CONSTRAINT_C23);
             }
         }
 

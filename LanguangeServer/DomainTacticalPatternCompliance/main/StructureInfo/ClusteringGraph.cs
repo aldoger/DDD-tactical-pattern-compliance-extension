@@ -4,7 +4,6 @@ using System.Linq;
 
 namespace DomainTacticalPatternCompliance.Main.StructureInfo
 {
-    /// <summary>Jenis edge ClusteringGraph (Iliopoulos 2025, 4.2.2).</summary>
     public enum EdgeType
     {
         Reference,   // 0.1, disesuaikan ke [0,1] di Fase 3

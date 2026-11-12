@@ -20,27 +20,8 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
             if (fc.IsMethod) name = fc.MethodInfo.MethodName;
             else if (fc.IsClass) name = fc.ClassInfo.ClassName;
 
-            if(!c16)
-            {
-                vlist.AddViolation(
-                    new Violation(
-                        name,
-                        Constraint.CONSTRAINT_C16,
-                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C14)
-                    )
-                );
-            }
-
-            if (!c15)
-            {
-                vlist.AddViolation(
-                    new Violation(
-                        name,
-                        Constraint.CONSTRAINT_C15,
-                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C15)
-                    )
-                );
-            }
+            if (!c16) Util.Util.AddViolation(vlist, name, Constraint.CONSTRAINT_C16);
+            if (!c15) Util.Util.AddViolation(vlist, name, Constraint.CONSTRAINT_C15);
         }
 
         private bool ValidateConstraintC16(Factory fc, DomainModelList domainList)

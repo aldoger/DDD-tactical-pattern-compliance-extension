@@ -16,27 +16,8 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
             bool c1 = ValidateConstraintC1(entity);
             bool c2 = ValidateConstraintC2(entity);
 
-            if (!c1)
-            {
-                vlist.AddViolation(
-                    new Violation(
-                        entity.Name,
-                        Constraint.CONSTRAINT_C1,
-                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C1)
-                    )
-                );
-            }
-
-            if (!c2)
-            {
-                vlist.AddViolation(
-                    new Violation(
-                        entity.Name,
-                        Constraint.CONSTRAINT_C2,
-                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C2)
-                    )
-                );
-            }
+            if (!c1) Util.Util.AddViolation(vlist, entity.Name, Constraint.CONSTRAINT_C1);
+            if (!c2) Util.Util.AddViolation(vlist, entity.Name, Constraint.CONSTRAINT_C2);
         }
 
         private bool ValidateConstraintC1(Entity entity)

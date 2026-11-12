@@ -19,60 +19,11 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
             bool c8 = ValidateConstraintC8(de);
             bool c9 = ValidateConstraintC9(de);
 
-            if (!c5)
-            {
-                vlist.AddViolation(
-                    new Violation(
-                        de.ClassInfo.ClassName,
-                        Constraint.CONSTRAINT_C5,
-                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C5)
-                    )
-                );
-            }
-
-            if (!c6)
-            {
-                vlist.AddViolation(
-                    new Violation(
-                        de.ClassInfo.ClassName,
-                        Constraint.CONSTRAINT_C6,
-                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C6)
-                    )
-                );
-            }
-
-            if (!c7)
-            {
-                vlist.AddViolation(
-                    new Violation(
-                        de.ClassInfo.ClassName,
-                        Constraint.CONSTRAINT_C7,
-                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C7)
-                    )
-                );
-            }
-
-            if (!c8)
-            {
-                vlist.AddViolation(
-                    new Violation(
-                        de.ClassInfo.ClassName,
-                        Constraint.CONSTRAINT_C8,
-                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C8)
-                    )
-                );
-            }
-
-            if (!c9)
-            {
-                vlist.AddViolation(
-                    new Violation(
-                        de.ClassInfo.ClassName,
-                        Constraint.CONSTRAINT_C9,
-                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C9)
-                    )
-                );
-            }
+            if (!c5) Util.Util.AddViolation(vlist, de.ClassInfo.ClassName, Constraint.CONSTRAINT_C5);
+            if (!c6) Util.Util.AddViolation(vlist, de.ClassInfo.ClassName, Constraint.CONSTRAINT_C6);
+            if (!c7) Util.Util.AddViolation(vlist, de.ClassInfo.ClassName, Constraint.CONSTRAINT_C7);
+            if (!c8) Util.Util.AddViolation(vlist, de.ClassInfo.ClassName, Constraint.CONSTRAINT_C8);
+            if (!c9) Util.Util.AddViolation(vlist, de.ClassInfo.ClassName, Constraint.CONSTRAINT_C9);
         }
 
         private bool ValidateConstraintC5(DomainEvent de)

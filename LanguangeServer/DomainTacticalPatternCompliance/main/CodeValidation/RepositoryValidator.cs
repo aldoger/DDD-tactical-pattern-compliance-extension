@@ -19,38 +19,9 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
             bool c13 = ValidateConstraintC13(rp);
             bool c14 = ValidateConstraintC14(rp, domainList);
 
-            if (!c12)
-            {
-                vlist.AddViolation(
-                    new Violation(
-                        rp.ClassInfo.ClassName,
-                        Constraint.CONSTRAINT_C12,
-                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C12)
-                    )
-                );
-            }
-
-            if(!c13)
-            {
-                vlist.AddViolation(
-                    new Violation(
-                        rp.ClassInfo.ClassName,
-                        Constraint.CONSTRAINT_C13,
-                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C13)
-                    )
-                );
-            }
-
-            if (!c14)
-            {
-                vlist.AddViolation(
-                    new Violation(
-                        rp.ClassInfo.ClassName,
-                        Constraint.CONSTRAINT_C14,
-                        ConstraintDescriptions.GetDescription(Constraint.CONSTRAINT_C14)
-                    )
-                );
-            }
+            if (!c12) Util.Util.AddViolation(vlist, rp.ClassInfo.ClassName, Constraint.CONSTRAINT_C12);
+            if (!c13) Util.Util.AddViolation(vlist, rp.ClassInfo.ClassName, Constraint.CONSTRAINT_C13);
+            if (!c14) Util.Util.AddViolation(vlist, rp.ClassInfo.ClassName, Constraint.CONSTRAINT_C14);
         }
 
         private bool ValidateConstraintC12(Repository rp, DomainModelList domainList)

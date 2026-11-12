@@ -1,9 +1,11 @@
-﻿using DomainTacticalPatternCompliance.main.Identifier;
+﻿using DomainTacticalPatternCompliance.main.CodeValidation;
+using DomainTacticalPatternCompliance.main.Identifier;
 using DomainTacticalPatternCompliance.main.StructureInfo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 namespace DomainTacticalPatternCompliance.Util
 {
@@ -98,6 +100,9 @@ namespace DomainTacticalPatternCompliance.Util
             return sb.ToString();
         }
 
-
+        public static void AddViolation(ViolationList vlist, string className, Constraint constraint)
+        {
+            vlist.AddViolation(new Violation(className, constraint, ConstraintDescriptions.GetDescription(constraint)));
+        }
     }
 }
