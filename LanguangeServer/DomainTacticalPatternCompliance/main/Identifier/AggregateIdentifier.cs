@@ -18,18 +18,13 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
     //   Fase 1  Call graph per "unit perilaku domain" (pengganti endpoint)
     //   Fase 2  ClusteringGraph awal       : REFERENCE / VALUE / EMBEDDED
     //   Fase 3  Graph enhancement          : OWNERSHIP / COUPLED + bobot REFERENCE
-    //   Fase 4  Clustering                 : SAC (ketat) dan Louvain (longgar)
+    //   Fase 4  Clustering                 : Strict Aggregate Clustering (SAC)
     //
     //  Bagian yang BUKAN dari paper ditandai [EKSTENSI].
     // =====================================================================================
 
-    public enum ClusteringAlgorithm { Strict, Louvain }
-
     public sealed class AggregateIdentifierOptions
     {
-        /// <summary>Berapa kali Louvain dijalankan; konfigurasi yang paling sering muncul dipilih.</summary>
-        public int LouvainRuns { get; init; } = 100;
-
         /// <summary>
         /// [EKSTENSI] Factory class yang membuat beberapa entity dalam satu method dianggap bukti OWNERSHIP:
         /// entity yang dikembalikan → entity lain yang ikut dibuat.
@@ -54,6 +49,12 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
         string A, string B, int Together, int TotalA, int TotalB, double Score, bool Promoted);
 
     public readonly record struct IdReference(string FromEntity, string ToEntity, string Member);
+
+    /// <summary>
+    /// [EKSTENSI] Referensi BERARAH yang disimpan entity: field/properti <c>Member</c> milik <c>FromEntity</c>
+    /// menyimpan objek <c>ToEntity</c> (ViaId = false) atau ID-nya (ViaId = true). Dipakai untuk C19.
+    /// </summary>
+    public readonly record struct EntityReference(string FromEntity, string ToEntity, string Member, bool ViaId);
 
     public sealed class AggregateCandidate
     {
@@ -80,10 +81,9 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
         public double DynamicThreshold { get; init; }
         public List<IdReference> IdReferences { get; init; } = new();
         public List<AggregateCandidate> StrictAggregates { get; init; } = new();
-        public List<AggregateCandidate> LouvainAggregates { get; init; } = new();
-        public int LouvainRuns { get; init; }
-        public int LouvainFrequency { get; init; }
-        public int LouvainDistinctConfigurations { get; init; }
+
+        /// <summary>[EKSTENSI] Fase 2: semua referensi berarah entity → entity (objek atau ID). Dipakai C19.</summary>
+        public List<EntityReference> EntityReferences { get; init; } = new();
 
         public IReadOnlyDictionary<string, IReadOnlyList<string>> RepositoryAccess { get; init; } = NoEntries;
 
@@ -120,10 +120,10 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
             sb.AppendLine($"Node: [{string.Join(", ", InitialGraph.Nodes)}]");
             foreach (var e in InitialGraph.Edges.OrderBy(e => e.Type).ThenBy(e => e.A).ThenBy(e => e.B))
                 sb.AppendLine($"  {e.Type.ToText(),-10} {e.A} — {e.B}   ({e.Reason})");
-            if (IdReferences.Count > 0)
+            if (EntityReferences.Count > 0)
             {
-                sb.AppendLine("Referensi lewat ID (dicatat, BUKAN edge — DDD menganjurkan antar-aggregate lewat ID):");
-                foreach (var r in IdReferences) sb.AppendLine($"  {r.FromEntity}.{r.Member} → {r.ToEntity}");
+                sb.AppendLine("Referensi berarah yang disimpan entity (dipakai C19; referensi ID BUKAN edge — DDD menganjurkan antar-aggregate lewat ID):");
+                foreach (var r in EntityReferences) sb.AppendLine($"  {r.FromEntity}.{r.Member} → {r.ToEntity}   [{(r.ViaId ? "ID" : "objek")}]");
             }
 
             Header("FASE 3 — Graph enhancement");
@@ -144,11 +144,8 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
             foreach (var e in EnhancedGraph.Edges.OrderBy(e => e.Type).ThenBy(e => e.A).ThenBy(e => e.B))
                 sb.AppendLine($"  {e.Type.ToText(),-10} {e.A} — {e.B}   w={e.Weight:0.###}");
 
-            Header("FASE 4a — Strict Aggregate Clustering (SAC)");
+            Header("FASE 4 — Strict Aggregate Clustering (SAC)");
             PrintCandidates(sb, StrictAggregates);
-            Header($"FASE 4b — Louvain Clustering ({LouvainRuns} run)");
-            sb.AppendLine($"Konfigurasi terpilih muncul {LouvainFrequency}/{LouvainRuns} kali ({LouvainDistinctConfigurations} konfigurasi berbeda).");
-            PrintCandidates(sb, LouvainAggregates);
             return sb.ToString();
         }
 
@@ -190,7 +187,7 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
             var (units, ctors) = builder.BuildAll();
 
             // Fase 2
-            var graph = ClusteringGraphInitializer.Build(ctx, _options, out var idRefs);
+            var graph = ClusteringGraphInitializer.Build(ctx, _options, out var idRefs, out var entityRefs);
             var initial = graph.Clone();
 
             // Fase 3
@@ -198,7 +195,6 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
 
             // Fase 4
             var sac = StrictAggregateClustering.Cluster(graph);
-            var lv = LouvainClustering.ClusterRepeated(graph, _options.LouvainRuns);
 
             return new AggregateIdentificationResult
             {
@@ -212,11 +208,8 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
                 CouplingScores = enh.Scores,
                 DynamicThreshold = enh.Threshold,
                 IdReferences = idRefs,
-                StrictAggregates = sac.Select(c => Describe(c, graph, ctx)).OrderByDescending(a => a.Members.Count()).ThenBy(a => a.Root).ToList(),
-                LouvainAggregates = lv.Clusters.Select(c => Describe(c, graph, ctx)).OrderByDescending(a => a.Members.Count()).ThenBy(a => a.Root).ToList(),
-                LouvainRuns = _options.LouvainRuns,
-                LouvainFrequency = lv.Frequency,
-                LouvainDistinctConfigurations = lv.Distinct
+                EntityReferences = entityRefs,
+                StrictAggregates = sac.Select(c => Describe(c, graph, ctx)).OrderByDescending(a => a.Members.Count()).ThenBy(a => a.Root).ToList()
             };
         }
 
@@ -250,18 +243,6 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
                 reason = entities.Count == 1 ? "satu-satunya entity"
                        : Creates(root) > 0 ? $"mengendalikan siklus hidup {string.Join(", ", ownInCluster.Where(x => x.Owner == root).Select(x => x.Other(root)))}"
                        : "derajat terbesar di cluster";
-
-                // [EKSTENSI] validasi dengan repository: BUKAN dipakai membentuk cluster, hanya diperiksa
-                foreach (var e in entities)
-                {
-                    var repos = ctx.RepositoriesAccessing(e);
-                    if (e == root && repos.Count == 0)
-                        warnings.Add($"root {e} tidak diakses repository mana pun (periksa C23)");
-                    if (e != root && repos.Count > 0)
-                        warnings.Add($"entity bagian {e} punya repository sendiri ({string.Join(", ", repos)}) → kandidat pelanggaran C23 / batas aggregate keliru");
-                }
-
-                // [EKSTENSI] validasi dengan factory: pembuatan aggregate (ROOT atau PART) dilakukan dengan factory
             }
             else warnings.Add("cluster tanpa entity (hanya value object/enum)");
 
@@ -657,10 +638,12 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
 
     internal static class ClusteringGraphInitializer
     {
-        public static ClusteringGraph Build(DomainContext ctx, AggregateIdentifierOptions opt, out List<IdReference> idRefs)
+        public static ClusteringGraph Build(DomainContext ctx, AggregateIdentifierOptions opt,
+                                            out List<IdReference> idRefs, out List<EntityReference> entityRefs)
         {
             var g = new ClusteringGraph();
             idRefs = new List<IdReference>();
+            entityRefs = new List<EntityReference>();
             var entities = ctx.Entities.OrderBy(x => x, StringComparer.Ordinal).ToList();
             foreach (var e in entities) g.AddNode(e);
 
@@ -678,13 +661,21 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
                         else if (ctx.IsValueObject(t))
                             g.SetEdge(e, vnode, EdgeType.Embedded, $"{e}.{memberName} bertipe value object");
                         else if (ctx.IsEntity(t) && t != e)
+                        {
                             refs.Add((e, t, $"{e}.{memberName}"));
+                            entityRefs.Add(new EntityReference(e, t, memberName, ViaId: false));
+                        }
                     }
 
-                    // referensi lewat ID: ResidenceId, OrderLineIds, ...
-                    var m = Regex.Match(memberName, "^(.+?)Ids?$");
+                    // referensi lewat ID: ResidenceId, OrderLineIds, _orderLineId, ...
+                    var idName = memberName.TrimStart('_');
+                    if (idName.Length > 0) idName = char.ToUpperInvariant(idName[0]) + idName[1..];
+                    var m = Regex.Match(idName, "^(.+?)Ids?$");
                     if (m.Success && ctx.IsEntity(m.Groups[1].Value) && m.Groups[1].Value != e)
+                    {
                         idRefs.Add(new IdReference(e, m.Groups[1].Value, memberName));
+                        entityRefs.Add(new EntityReference(e, m.Groups[1].Value, memberName, ViaId: true));
+                    }
                 }
 
                 if (opt.MethodParameterAsReference)
@@ -779,7 +770,7 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
     }
 
     // =====================================================================================
-    //  FASE 4a — Strict Aggregate Clustering (DFS + Union-Find)
+    //  FASE 4 — Strict Aggregate Clustering (DFS + Union-Find)
     // =====================================================================================
 
     internal static class StrictAggregateClustering
@@ -824,147 +815,6 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
             }
 
             return g.Nodes.GroupBy(Find).Select(gr => gr.ToHashSet(StringComparer.Ordinal)).ToList();
-        }
-    }
-
-    // =====================================================================================
-    //  FASE 4b — Louvain (Blondel et al., 2008), tanpa library eksternal
-    // =====================================================================================
-
-    internal static class LouvainClustering
-    {
-        public sealed record Result(List<HashSet<string>> Clusters, int Frequency, int Distinct);
-
-        /// <summary>Jalankan beberapa kali dengan urutan node acak; pilih konfigurasi yang paling sering (paper 4.2.4).</summary>
-        public static Result ClusterRepeated(ClusteringGraph g, int runs)
-        {
-            var names = g.Nodes.ToList();
-            var index = names.Select((n, i) => (n, i)).ToDictionary(x => x.n, x => x.i, StringComparer.Ordinal);
-
-            var tally = new Dictionary<string, (int Count, List<HashSet<string>> Clusters)>();
-            for (int seed = 0; seed < Math.Max(1, runs); seed++)
-            {
-                var assignment = RunOnce(names.Count, g.Edges.Select(e => (index[e.A], index[e.B], e.Weight)), new Random(seed));
-                var clusters = assignment.Select((c, i) => (c, i)).GroupBy(x => x.c)
-                    .Select(gr => gr.Select(x => names[x.i]).ToHashSet(StringComparer.Ordinal)).ToList();
-                string key = string.Join(" | ", clusters.Select(c => string.Join(",", c.OrderBy(x => x, StringComparer.Ordinal)))
-                                                         .OrderBy(x => x, StringComparer.Ordinal));
-                tally[key] = tally.TryGetValue(key, out var t) ? (t.Count + 1, t.Clusters) : (1, clusters);
-            }
-
-            var best = tally.OrderByDescending(kv => kv.Value.Count).ThenBy(kv => kv.Key, StringComparer.Ordinal).First();
-            return new Result(best.Value.Clusters, best.Value.Count, tally.Count);
-        }
-
-        /// <summary>Satu run Louvain. Mengembalikan nomor komunitas untuk tiap node asli.</summary>
-        private static int[] RunOnce(int n, IEnumerable<(int A, int B, double W)> edges, Random rnd)
-        {
-            var graph = new WGraph(n);
-            foreach (var (a, b, w) in edges) graph.Add(a, b, w);
-
-            var membership = Enumerable.Range(0, n).ToArray();   // node asli → node di level sekarang
-            while (true)
-            {
-                var (comm, moved) = OneLevel(graph, rnd);
-                if (!moved) break;
-                for (int i = 0; i < n; i++) membership[i] = comm[membership[i]];
-                graph = graph.Aggregate(comm);
-            }
-            return membership;
-        }
-
-        /// <summary>Fase local moving: pindahkan node ke komunitas tetangga dengan gain modularity terbesar.</summary>
-        private static (int[] Comm, bool Moved) OneLevel(WGraph g, Random rnd)
-        {
-            int n = g.N;
-            var comm = Enumerable.Range(0, n).ToArray();
-            double m = g.TotalWeight;
-            if (m <= 0) return (comm, false);
-
-            var deg = Enumerable.Range(0, n).Select(g.Degree).ToArray();
-            var tot = (double[])deg.Clone();
-            bool anyMove = false, improved = true;
-
-            while (improved)
-            {
-                improved = false;
-                foreach (int i in Enumerable.Range(0, n).OrderBy(_ => rnd.Next()).ToList())
-                {
-                    int ci = comm[i];
-                    var toComm = new Dictionary<int, double>();
-                    foreach (var (j, w) in g.Neighbors(i))
-                        if (j != i) toComm[comm[j]] = toComm.GetValueOrDefault(comm[j]) + w;
-
-                    tot[ci] -= deg[i];
-                    int best = ci;
-                    double bestGain = toComm.GetValueOrDefault(ci) - tot[ci] * deg[i] / (2 * m);
-                    foreach (var (c, w) in toComm)
-                    {
-                        double gain = w - tot[c] * deg[i] / (2 * m);
-                        if (gain > bestGain + 1e-12) { bestGain = gain; best = c; }
-                    }
-                    tot[best] += deg[i];
-                    comm[i] = best;
-                    if (best != ci) { improved = true; anyMove = true; }
-                }
-            }
-
-            // nomori ulang komunitas 0..k-1
-            var renum = new Dictionary<int, int>();
-            for (int i = 0; i < n; i++)
-            {
-                if (!renum.TryGetValue(comm[i], out var r)) renum[comm[i]] = r = renum.Count;
-                comm[i] = r;
-            }
-            return (comm, anyMove && renum.Count < n);
-        }
-
-        /// <summary>Graf berbobot tak berarah sederhana; self-loop disimpan di adj[i][i].</summary>
-        private sealed class WGraph
-        {
-            private readonly Dictionary<int, double>[] _adj;
-            public int N => _adj.Length;
-
-            public WGraph(int n)
-            {
-                _adj = new Dictionary<int, double>[n];
-                for (int i = 0; i < n; i++) _adj[i] = new Dictionary<int, double>();
-            }
-
-            public void Add(int a, int b, double w)
-            {
-                if (w <= 0) return;
-                _adj[a][b] = _adj[a].GetValueOrDefault(b) + w;
-                if (a != b) _adj[b][a] = _adj[b].GetValueOrDefault(a) + w;
-            }
-
-            public IEnumerable<(int, double)> Neighbors(int i) => _adj[i].Select(kv => (kv.Key, kv.Value));
-
-            /// <summary>Derajat berbobot; self-loop dihitung dua kali.</summary>
-            public double Degree(int i) => _adj[i].Sum(kv => kv.Key == i ? 2 * kv.Value : kv.Value);
-
-            /// <summary>Total bobot edge (setiap edge sekali).</summary>
-            public double TotalWeight
-            {
-                get
-                {
-                    double s = 0;
-                    for (int i = 0; i < N; i++)
-                        foreach (var kv in _adj[i])
-                            if (kv.Key >= i) s += kv.Value;
-                    return s;
-                }
-            }
-
-            /// <summary>Fase coarsening: satu komunitas menjadi satu node.</summary>
-            public WGraph Aggregate(int[] comm)
-            {
-                var g = new WGraph(comm.Max() + 1);
-                for (int i = 0; i < N; i++)
-                    foreach (var kv in _adj[i])
-                        if (kv.Key >= i) g.Add(comm[i], comm[kv.Key], kv.Value);
-                return g;
-            }
         }
     }
 }

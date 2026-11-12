@@ -23,7 +23,6 @@ global using global::System.Threading.Tasks;
         private static readonly CSharpParseOptions ParseOptions =
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
 
-        /// <summary>The .NET base class library, loaded once per process.</summary>
         private static readonly Lazy<IReadOnlyList<MetadataReference>> FrameworkReferences =
             new(LoadFrameworkReferences);
 

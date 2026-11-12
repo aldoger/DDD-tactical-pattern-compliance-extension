@@ -150,7 +150,7 @@ namespace DomainTacticalPatternCompliance
                     public Guid Id { get; }
                     public Address Address { get; private set; }
                     public int Capacity { get; }
-                    public Guid? HeadOfHouseholdId { get; private set; }
+                    public Guid? HumanId { get; private set; }
                     public IReadOnlyCollection<Guid> ResidentIds => _residentIds;
  
                     public Residence(Guid id, Address address, int capacity)
@@ -185,7 +185,7 @@ namespace DomainTacticalPatternCompliance
  
                     public bool IsHead(Guid humanId)
                     {
-                        return HeadOfHouseholdId == humanId;
+                        return HumanId == humanId;
                     }
  
                     public void ChangeAddress(Address newAddress)

@@ -14,7 +14,7 @@ namespace DomainTacticalPatternCompliance.main.Identifier
     public enum DomainModelKind { Factory, Repository, DomainService, Entity, ValueObject }
 
     public sealed record DomainModelSignals(
-        bool HasIdentity,                  // Id or <ClassName>Id member
+        bool HasIdentity,                  // variable member id
         int StateMemberCount,              // instance fields / auto-properties / record parameters
         bool AllStateReadOnly,             // >=1 state member and all immutable (get-only/init/readonly, non-collection)
         bool HasStructuralEquality,        // record, struct, IEquatable<T>, or BOTH Equals and GetHashCode overridden
