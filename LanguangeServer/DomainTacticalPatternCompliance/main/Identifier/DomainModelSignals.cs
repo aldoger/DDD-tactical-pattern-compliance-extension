@@ -30,7 +30,7 @@ namespace DomainTacticalPatternCompliance.main.Identifier
         DomainModelKind? ExplicitKind      // [ValueObject], [Entity], ... attribute, if any
     );
 
-    public static class ClassSignalExtractor
+    public static class DomainModelSignalExtractor
     {
         private readonly record struct StateMember(string Name, string TypeName, bool Mutable, bool Injected);
 

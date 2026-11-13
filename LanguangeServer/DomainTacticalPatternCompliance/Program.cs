@@ -19,7 +19,7 @@ namespace DomainTacticalPatternCompliance
                         public string Street { get; }
                         public string City { get; }
                         public string Province { get; }
-                        public string PostalCode { get; }
+                        public string PostalCode { get; set; }
                         public string Country { get; }
  
                         // Validation lives here so every instance is always valid.

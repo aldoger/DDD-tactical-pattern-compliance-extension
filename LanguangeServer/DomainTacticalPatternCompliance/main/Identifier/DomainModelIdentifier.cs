@@ -38,7 +38,7 @@ namespace DomainTacticalPatternCompliance.main.Identifier
             foreach (var m in classStructureInfo.Methods) m.Analyze(cls);
             new ClassStereotypeIdentifier().IdentifyStereotype(classStructureInfo);
 
-            var signals = ClassSignalExtractor.Extract(classStructureInfo.ClassDeclaration, projectTypeNames);
+            var signals = DomainModelSignalExtractor.Extract(classStructureInfo.ClassDeclaration, projectTypeNames);
             var decision = Decide(signals, classStructureInfo.Stereotype);
 
             Debug.WriteLine(
