@@ -145,6 +145,11 @@ global using global::System.Threading.Tasks;
             return classDeclare.DescendantNodes().OfType<PropertyDeclarationSyntax>();
         }
 
+        public IEnumerable<FieldDeclarationSyntax> GetFields(ClassDeclarationSyntax classDeclaration)
+        {
+            return classDeclaration.DescendantNodes().OfType<FieldDeclarationSyntax>();
+        }
+
         public string? GetBaseClassNameType(ClassDeclarationSyntax classDeclaration)
         {
             var baseType = classDeclaration.BaseList?.Types.FirstOrDefault();
@@ -252,6 +257,11 @@ global using global::System.Threading.Tasks;
                 a.IsKind(SyntaxKind.InitAccessorDeclaration));
 
             return hasGetter && !hasSetter && !hasInit;
+        }
+
+        public bool IsFieldImmutable(FieldDeclarationSyntax field)
+        {
+            return field.Modifiers.Any(SyntaxKind.ReadOnlyKeyword);
         }
 
         static readonly HashSet<string> TemporalNames = new()

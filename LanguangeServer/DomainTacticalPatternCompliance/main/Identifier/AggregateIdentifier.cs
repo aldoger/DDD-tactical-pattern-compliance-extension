@@ -365,6 +365,12 @@ namespace DomainTacticalPatternCompliance.Main.Identifier
                     foreach (var n in created)
                         AddUnique(_factoryCreated, n, factory);
                 }
+
+            foreach (var service in DomainServices)
+                foreach (var m in _classes[service].Methods)
+                {
+                    
+                }
         }
 
         public SemanticModel Model(SyntaxTree tree)

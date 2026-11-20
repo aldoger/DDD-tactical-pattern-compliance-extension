@@ -6,7 +6,7 @@ namespace DomainTacticalPatternCompliance.Main.StructureInfo
 {
     public enum EdgeType
     {
-        Reference,   // 0.1, disesuaikan ke [0,1] di Fase 3
+        Reference,   // 0.1
         Coupled,     // 1.5
         Ownership,   // 2.0
         Embedded,    // 2.0
