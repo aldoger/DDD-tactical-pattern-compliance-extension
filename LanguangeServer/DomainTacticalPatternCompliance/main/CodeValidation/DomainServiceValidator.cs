@@ -25,6 +25,8 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
             if (ds.ClassInfo == null) return false;
             var properties = parser.GetProperties(ds.ClassInfo.ClassDeclaration);
             if (properties.Count() > 0) return false;
+            var fields = parser.GetFields(ds.ClassInfo.ClassDeclaration);
+            if(fields.Count() > 0) return false;
             return true;
         }
 

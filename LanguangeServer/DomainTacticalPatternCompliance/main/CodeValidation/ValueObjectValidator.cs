@@ -27,6 +27,14 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
             {
                 if(Util.Util.ContainsId(property.Identifier.Text)) return false;
             }
+            var fields = parser.GetFields(vo.ClassInfo.ClassDeclaration);
+            foreach (var field in fields)
+            {
+                foreach(var f in field.Declaration.Variables)
+                {
+                    if (Util.Util.ContainsId(f.Identifier.Text)) return false;
+                }
+            }
             return true;
         }
 

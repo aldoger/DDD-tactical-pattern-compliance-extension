@@ -261,7 +261,8 @@ global using global::System.Threading.Tasks;
 
         public bool IsFieldImmutable(FieldDeclarationSyntax field)
         {
-            return field.Modifiers.Any(SyntaxKind.ReadOnlyKeyword);
+            return field.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) ||
+                   field.Modifiers.Any(SyntaxKind.ConstKeyword);
         }
 
         static readonly HashSet<string> TemporalNames = new()
