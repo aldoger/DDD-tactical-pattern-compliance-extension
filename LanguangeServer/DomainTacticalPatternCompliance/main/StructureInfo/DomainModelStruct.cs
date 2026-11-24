@@ -56,7 +56,8 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
         }
         public void AddDomainModelInvolved(DomainModelStruct domainModel)
         {
-            DomainModelInvolved.Add(domainModel);
+            if (!DomainModelInvolved.Contains(domainModel))
+                DomainModelInvolved.Add(domainModel);
         }
     }
     public class DomainEvent : DomainModelStruct
@@ -100,7 +101,10 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
     }
     public class Repository : DomainModelStruct
     {
+        // The main domain model this repository persists (e.g. "Human" for HumanRepository).
         public string? AccessedType;
+        // Every entity / value object / aggregate that appears in the repository's method signatures.
+        public List<DomainModelStruct> AccessedDomainModels = new List<DomainModelStruct>();
         public ClassStructureInfo? ClassInfo;
         public Repository(string name, ClassStructureInfo classInfo)
             : base(name, "Repository")
@@ -110,6 +114,11 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
         public void SetAccessedType(string accessedType)
         {
             AccessedType = accessedType;
+        }
+        public void AddAccessedDomainModel(DomainModelStruct domainModel)
+        {
+            if (!AccessedDomainModels.Contains(domainModel))
+                AccessedDomainModels.Add(domainModel);
         }
     }
     public class Aggregate : DomainModelStruct

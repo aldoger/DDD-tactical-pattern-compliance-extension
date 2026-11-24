@@ -86,6 +86,18 @@ namespace DomainTacticalPatternCompliance.Util
                     {
                         sb.AppendLine($"    Method: {method.MethodName}");
                     }
+                    foreach (var involved in domainService.DomainModelInvolved)
+                    {
+                        sb.AppendLine($"    Involves: {involved.Name} [{involved.DomainType}]");
+                    }
+                }
+                else if (dm is Repository repository)
+                {
+                    sb.AppendLine($"  Accessed type: {repository.AccessedType ?? "-"}");
+                    foreach (var accessed in repository.AccessedDomainModels)
+                    {
+                        sb.AppendLine($"    Accesses: {accessed.Name} [{accessed.DomainType}]");
+                    }
                 }
                 else if (dm is DomainEvent domainEvent && domainEvent.ClassInfo != null)
                 {

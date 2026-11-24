@@ -465,6 +465,10 @@ namespace DomainTacticalPatternCompliance
                DomainModelIdentifier.IdentifyDomainModels(c, domainModelList);
             }
 
+            // Second pass: now that every class is registered, work out which domain models
+            // each repository accesses and which ones each domain service works with.
+            DomainModelIdentifier.ResolveDomainModelReferences(domainModelList, parser.Compilation);
+
             // TODO: make algorithm to identify publisher and subscriber from domain events
 
             var aggregateIdentifier = new AggregateIdentifier(parser.Compilation);
