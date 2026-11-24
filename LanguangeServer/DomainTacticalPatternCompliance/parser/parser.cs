@@ -160,10 +160,6 @@ global using global::System.Threading.Tasks;
         {
             return classDeclaration.DescendantNodes().OfType<ConstructorDeclarationSyntax>().Any();
         }
-        public string GetMethodReturnType(MethodDeclarationSyntax methodDeclaration)
-        {
-            return methodDeclaration.ReturnType.ToString();
-        }
         
         public IEnumerable<ParameterSyntax> GetMethodParameters(MethodDeclarationSyntax methodDeclaration)
         {
@@ -207,10 +203,6 @@ global using global::System.Threading.Tasks;
                     yield return pt.Keyword.Text;
                     break;
             }
-        }
-        public bool IsMethodStatic(MethodDeclarationSyntax methodDeclaration)
-        {
-            return methodDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword);
         }
 
         public bool IsMethodPrivate(MethodDeclarationSyntax methodDeclaration)

@@ -12,18 +12,9 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
     {
         public string MethodName;
         public MethodDeclarationSyntax MethodDeclaration;
-        public bool IsStatic;
         public string? ReturnType;
         public List<MethodStereotype> Stereotype =  new();
         public MethodFacts? Facts;
-        public void SetIsStatic(bool isStatic)
-        {
-            IsStatic = isStatic;
-        }
-        public void SetReturnType(string? returnType)
-        {
-            ReturnType = returnType;
-        }
         public void AddStereotype(MethodStereotype stereotype)
         {
             if (!Stereotype.Contains(stereotype))
@@ -38,8 +29,6 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
         public void Analyze(ClassMemberContext cls, MethodAnalysisOptions? options = null)
         {
             Facts = MethodFactsExtractor.Extract(MethodDeclaration, cls, options);
-            SetIsStatic(Facts.IsStatic);
-            SetReturnType(Facts.ReturnType);
 
             Stereotype.Clear();
             foreach (var s in MethodStereotypeClassifier.Classify(Facts))
@@ -52,8 +41,6 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
         public string ClassName;
         public ClassDeclarationSyntax ClassDeclaration; 
         public string? BaseClassName;
-        public bool HasConstructor;
-        public bool IsStatic;
         public int TotalAccesor;
         public int TotalMutator;
         public int TotalCollaborator;
@@ -64,17 +51,9 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
         {
             Methods.Add(method);
         }
-        public void SetHasConstructor(bool hasConstructor)
-        {
-            HasConstructor = hasConstructor;
-        }
         public void SetBaseClassName(string baseClassName)
         {
             BaseClassName = baseClassName;
-        }
-        public void SetIsStatic(bool isStatic)
-        {
-            IsStatic = isStatic;
         }
         public void AddStereotype(ClassStereotype stereotype)
         {

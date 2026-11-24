@@ -450,14 +450,9 @@ namespace DomainTacticalPatternCompliance
                 var baseClassName = parser.GetBaseClassNameType(classDeclaration);
                 var classInfo = new ClassStructureInfo(classDeclaration.Identifier.Text, baseClassName, classDeclaration);
 
-                classInfo.SetHasConstructor(parser.HasConstructor(classDeclaration));
-                classInfo.SetIsStatic(parser.IsClassStatic(classDeclaration));
                 foreach (var method in parser.GetMethods(classDeclaration))
                 {
                     var methodInfo = new MethodStructureInfo(method.Identifier.Text, method);
-                    methodInfo.SetIsStatic(parser.IsMethodStatic(method));
-                    var returnType = parser.GetMethodReturnType(method);
-                    methodInfo.SetReturnType(returnType);
                     classInfo.AddMethod(methodInfo);
                 }
                 classStructureInfoList.AddClass(classInfo);

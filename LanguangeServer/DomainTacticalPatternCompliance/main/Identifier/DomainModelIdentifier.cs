@@ -41,11 +41,6 @@ namespace DomainTacticalPatternCompliance.main.Identifier
             var signals = DomainModelSignalExtractor.Extract(classStructureInfo.ClassDeclaration, projectTypeNames);
             var decision = Decide(signals, classStructureInfo.Stereotype);
 
-            Debug.WriteLine(
-                $"[DomainModelIdentifier] {classStructureInfo.ClassName}: " +
-                string.Join(", ", decision.Ranked.Select(r => $"{r.Kind}={Fmt(r.Score)}")) +
-                $" => {(decision.Kind?.ToString() ?? "Unclassified")} ({decision.Reason})");
-
             if (decision.Kind is null) return;
 
             Register(decision.Kind.Value, classStructureInfo, domainModelList);

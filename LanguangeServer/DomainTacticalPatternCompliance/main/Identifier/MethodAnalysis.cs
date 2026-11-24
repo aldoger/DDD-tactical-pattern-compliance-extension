@@ -169,22 +169,22 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
 
             public MethodFacts Run()
             {
-                ReadHeader();            // findName / findNameSignature / findReturnType
-                ReadParameters();        // findParameterName / findParameterType
+                ReadHeader();            
+                ReadParameters();        
 
                 SyntaxNode? body = (SyntaxNode?)_method.Body ?? _method.ExpressionBody;
                 if (body is null) return _f;   // abstract / extern / interface -> 0 statements -> "empty"
 
                 _nodes = body.DescendantNodes().ToList();
 
-                CountStatements();       // findNonCommentStatements
-                CollectLocals();         // findLocalVariableName / Type
-                ClassifyTypes();         // findNonPrimitive
-                CollectNewAssigned();    // findNewAssignedVariables
-                CollectReturns();        // findReturnExpression / findReturnedVariables
-                CollectCalls();          // findCallName / findIgnorableCalls / findCallsOnDataMembers
-                CollectUsage();          // findExpressionNames / findVariablesInExpressions
-                CollectModifications();  // findExpressionAssignments / findModifiedVariables
+                CountStatements();       
+                CollectLocals();         
+                ClassifyTypes();         
+                CollectNewAssigned();    
+                CollectReturns();        
+                CollectCalls();          
+                CollectUsage();          
+                CollectModifications();  
                 return _f;
             }
 
@@ -194,7 +194,6 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
             {
                 _f.Name = _method.Identifier.ValueText;
                 _f.Signature = $"{_f.Name}/{_method.ParameterList.Parameters.Count}";
-                _f.IsStatic = _method.Modifiers.Any(SyntaxKind.StaticKeyword);
 
                 TypeSyntax rt = _method.ReturnType;
                 if (rt is RefTypeSyntax r) rt = r.Type;
