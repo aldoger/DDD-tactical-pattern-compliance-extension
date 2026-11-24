@@ -46,6 +46,12 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
             {
                 if (!parser.IsPropertyImmutable(property)) return false;
             }
+            var fields = parser.GetFields(vo.ClassInfo.ClassDeclaration);
+            foreach (var field in fields)
+            {
+                if (!parser.IsFieldImmutable(field)) return false;
+            }
+            if (vo.ClassInfo.TotalMutator > 0) return false;
             return true;
         }
     }

@@ -205,15 +205,12 @@ namespace DomainTacticalPatternCompliance.main.Identifier
                     }
                 case DomainModelKind.Repository:
                     {
-                        // Accessed domain models are filled in later by ResolveDomainModelReferences,
-                        // because the entities this repository uses may not be registered yet.
                         Repository newRepository = new Repository(info.ClassName, info);
                         list.AddDomainModel(newRepository);
                         break;
                     }
                 case DomainModelKind.DomainService:
                     {
-                        // Involved domain models are filled in later by ResolveDomainModelReferences.
                         DomainService newDomainService = new DomainService(info.ClassName, info);
                         list.AddDomainModel(newDomainService);
                         break;
@@ -235,171 +232,5 @@ namespace DomainTacticalPatternCompliance.main.Identifier
 
         private static string Fmt(double score) =>
             double.IsNegativeInfinity(score) ? "veto" : score.ToString("0.#");
-
-        // ------------------------------------------------------------ reference resolution
-
-        /// <summary>
-        /// Second pass, to run after every class has gone through <see cref="IdentifyDomainModels"/>.
-        /// It fills in which domain models each Repository accesses and which domain models each
-        /// Domain Service works with. It must run afterwards because a class can reference a domain
-        /// model that has not been registered yet.
-        /// </summary>
-        /// <param name="compilation">
-        /// Optional. When given, the semantic model also finds types the syntax does not show
-        /// (e.g. <c>var r = repo.GetById(id)</c> resolves to <c>Residence</c>).
-        /// </param>
-        public static void ResolveDomainModelReferences(DomainModelList list, Compilation? compilation = null)
-        {
-            foreach (var dm in list.DomainModels.ToList())
-            {
-                switch (dm)
-                {
-                    case Repository repository:
-                        ResolveRepositoryAccess(repository, list);
-                        break;
-                    case DomainService domainService:
-                        ResolveDomainServiceInvolvement(domainService, list, compilation);
-                        break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// A repository's contract is its method signatures: every parameter and return type is
-        /// scanned (e.g. <c>Task&lt;IReadOnlyList&lt;Human&gt;&gt; GetByResidenceAsync(Guid)</c> gives Human).
-        /// The main <see cref="Repository.AccessedType"/> is the entity/aggregate that appears in
-        /// the most methods; value objects used only as search criteria (e.g. Address) count only
-        /// when there is no entity.
-        /// </summary>
-        private static void ResolveRepositoryAccess(Repository repository, DomainModelList list)
-        {
-            if (repository.ClassInfo == null) return;
-
-            // how many methods reference each domain model
-            var methodHits = new Dictionary<DomainModelStruct, int>();
-
-            foreach (var method in repository.ClassInfo.Methods)
-            {
-                var decl = method.MethodDeclaration;
-                var signatureTypes = decl.ParameterList.Parameters
-                    .Select(p => p.Type)
-                    .Append(decl.ReturnType)
-                    .SelectMany(SyntacticTypeNames)
-                    .Distinct();
-
-                foreach (var dm in LookupDomainModels(signatureTypes, list, exclude: repository))
-                {
-                    if (!Util.Util.IsDomainModelEntityOrValueObjectOrAggregate(dm)) continue;
-
-                    repository.AddAccessedDomainModel(dm);
-                    methodHits[dm] = methodHits.TryGetValue(dm, out var c) ? c + 1 : 1;
-                }
-            }
-
-            var primary = methodHits
-                .OrderByDescending(kv => kv.Key is Entity || kv.Key is Aggregate)
-                .ThenByDescending(kv => kv.Value)
-                .Select(kv => kv.Key)
-                .FirstOrDefault();
-
-            if (primary != null) repository.SetAccessedType(primary.Name);
-        }
-
-        /// <summary>
-        /// A domain service coordinates several domain models, so the whole class body is scanned:
-        /// parameter, return and local variable types, <c>new X()</c>, static calls such as
-        /// <c>Address.Create(...)</c> and generic arguments. Every registered domain model that
-        /// appears (entity, value object, aggregate, repository, factory, event, other service)
-        /// is recorded.
-        /// </summary>
-        private static void ResolveDomainServiceInvolvement(DomainService domainService, DomainModelList list, Compilation? compilation)
-        {
-            if (domainService.ClassInfo == null) return;
-
-            var classDecl = domainService.ClassInfo.ClassDeclaration;
-            var names = new HashSet<string>(SyntacticTypeNames(classDecl));
-
-            var model = TryGetSemanticModel(classDecl, compilation);
-            if (model != null)
-                names.UnionWith(SemanticTypeNames(classDecl, model));
-
-            foreach (var dm in LookupDomainModels(names, list, exclude: domainService))
-                domainService.AddDomainModelInvolved(dm);
-        }
-
-        // ------------------------------------------------------------ helpers
-
-        private static IEnumerable<DomainModelStruct> LookupDomainModels(
-            IEnumerable<string> names, DomainModelList list, DomainModelStruct exclude)
-        {
-            foreach (var name in names)
-            {
-                var matches = list.GetDomainModel(name);
-                if (matches == null) continue;
-                foreach (var dm in matches)
-                    if (!ReferenceEquals(dm, exclude))
-                        yield return dm;
-            }
-        }
-
-        /// <summary>
-        /// Every simple name in the node: type names inside generics, arrays, nullables and
-        /// qualified names, plus identifiers used as static receivers (<c>Address</c> in
-        /// <c>Address.Create()</c>). Extra names do no harm because they are only kept when
-        /// they match a registered domain model.
-        /// </summary>
-        private static IEnumerable<string> SyntacticTypeNames(SyntaxNode? node)
-        {
-            if (node == null) return Enumerable.Empty<string>();
-            return node.DescendantNodesAndSelf()
-                .OfType<SimpleNameSyntax>()
-                .Select(n => n.Identifier.ValueText);
-        }
-
-        /// <summary>
-        /// Types the compiler infers: expressions (catches <c>var</c>), and declared parameters/locals.
-        /// </summary>
-        private static IEnumerable<string> SemanticTypeNames(SyntaxNode node, SemanticModel model)
-        {
-            var result = new HashSet<string>();
-            foreach (var n in node.DescendantNodes())
-            {
-                ITypeSymbol? type = n switch
-                {
-                    ExpressionSyntax e => model.GetTypeInfo(e).Type,
-                    VariableDeclaratorSyntax v => (model.GetDeclaredSymbol(v) as ILocalSymbol)?.Type,
-                    ParameterSyntax p => model.GetDeclaredSymbol(p)?.Type,
-                    _ => null
-                };
-                CollectTypeNames(type, result);
-            }
-            return result;
-        }
-
-        private static void CollectTypeNames(ITypeSymbol? type, ISet<string> into)
-        {
-            switch (type)
-            {
-                case null:
-                    return;
-                case IArrayTypeSymbol array:
-                    CollectTypeNames(array.ElementType, into);
-                    return;
-                case INamedTypeSymbol named:
-                    if (!into.Add(named.Name)) return;
-                    foreach (var arg in named.TypeArguments)
-                        CollectTypeNames(arg, into);
-                    return;
-                default:
-                    into.Add(type.Name);
-                    return;
-            }
-        }
-
-        private static SemanticModel? TryGetSemanticModel(SyntaxNode node, Compilation? compilation)
-        {
-            if (compilation == null || !compilation.ContainsSyntaxTree(node.SyntaxTree)) return null;
-            return compilation.GetSemanticModel(node.SyntaxTree);
-        }
     }
 }
