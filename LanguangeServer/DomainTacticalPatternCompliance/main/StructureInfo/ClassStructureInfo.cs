@@ -12,7 +12,6 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
     {
         public string MethodName;
         public MethodDeclarationSyntax MethodDeclaration;
-        public string? ReturnType;
         public List<MethodStereotype> Stereotype =  new();
         public MethodFacts? Facts;
         public void AddStereotype(MethodStereotype stereotype)

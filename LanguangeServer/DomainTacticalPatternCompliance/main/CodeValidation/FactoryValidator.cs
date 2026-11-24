@@ -36,7 +36,8 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
         {
             if (fc.IsMethod && fc.MethodInfo != null)
             {
-                var returnType = fc.MethodInfo.ReturnType;
+                var returnType = fc.MethodInfo.Facts.ReturnType;
+                if(returnType == null) return false;
                 var domainModel = domainList.GetDomainModelFirst(returnType);
                 if (domainModel == null) return false;
                 if (Util.Util.IsDomainModelEntityOrValueObjectOrAggregate(domainModel)) return true;
@@ -48,7 +49,8 @@ namespace DomainTacticalPatternCompliance.main.CodeValidation
                 foreach(var method in fc.ClassInfo.Methods)
                 {
                     if (parser.IsMethodPrivate(method.MethodDeclaration)) continue;
-                    var returnType = method.ReturnType;
+                    var returnType = method.Facts?.ReturnType;
+                    if(returnType == null) return false;
                     var domainModel = domainList.GetDomainModelFirst(returnType);
                     if (domainModel == null) return false;
                     if (!Util.Util.IsDomainModelEntityOrValueObjectOrAggregate(domainModel)) return false;

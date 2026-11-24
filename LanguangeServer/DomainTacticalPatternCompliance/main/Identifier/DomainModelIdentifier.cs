@@ -191,18 +191,40 @@ namespace DomainTacticalPatternCompliance.main.Identifier
                         Factory newFactory = new Factory(info.ClassName);
                         newFactory.SetClassInfo(info);
                         list.AddDomainModel(newFactory);
+                        foreach (var method in info.Methods)
+                        {
+                            if (method.Facts?.ReturnType != null)
+                            {
+                                newFactory.AddObjectCreatedType(method.Facts.ReturnType);
+                            }
+                        }
                         break;
                     }
                 case DomainModelKind.Repository:
                     {
                         Repository newRepository = new Repository(info.ClassName, info);
                         list.AddDomainModel(newRepository);
+                        foreach(var method in info.Methods)
+                        {
+                            if (method.Facts?.ReturnType != null)
+                            {
+                                // each method must have a parameter or return type that corresponds to a domain model, for example GetHumanById(string id) returns HumanB, or GetHumanBList() returns List<HumanB>
+                                // See every parameter and return type to see the accessed domain model type
+                            }
+                        }
                         break;
                     }
                 case DomainModelKind.DomainService:
                     {
                         DomainService newDomainService = new DomainService(info.ClassName, info);
                         list.AddDomainModel(newDomainService);
+                        foreach(var method in info.Methods)
+                        {
+                            if (method.Facts?.ReturnType != null)
+                            {
+                                // See parameter, variables in statement, and expression to get domain model that are involved
+                            }
+                        }
                         break;
                     }
                 case DomainModelKind.Entity:
@@ -223,4 +245,6 @@ namespace DomainTacticalPatternCompliance.main.Identifier
         private static string Fmt(double score) =>
             double.IsNegativeInfinity(score) ? "veto" : score.ToString("0.#");
     }
+
+    
 }

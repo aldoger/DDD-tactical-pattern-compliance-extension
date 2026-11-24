@@ -48,10 +48,15 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
     public class DomainService : DomainModelStruct
     {
         public ClassStructureInfo? ClassInfo;
+        public List<DomainModelStruct> DomainModelInvolved = new List<DomainModelStruct>();
         public DomainService(string name, ClassStructureInfo? classInfo)
             : base(name, "Domain Service")
         {
             ClassInfo = classInfo;
+        }
+        public void AddDomainModelInvolved(DomainModelStruct domainModel)
+        {
+            DomainModelInvolved.Add(domainModel);
         }
     }
     public class DomainEvent : DomainModelStruct
@@ -67,9 +72,9 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
     {
         public bool IsClass;
         public bool IsMethod;
-        public string? ReturnType;
         public ClassStructureInfo? ClassInfo;
         public MethodStructureInfo? MethodInfo;
+        public List<string> ObjectCreatedType = new List<string>();
         public void SetClassInfo(ClassStructureInfo classInfo)
         {
             ClassInfo = classInfo;
@@ -82,6 +87,11 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
             IsClass = false;
             IsMethod = true;
         }
+        public void AddObjectCreatedType(string type)
+        {
+            ObjectCreatedType.Add(type);
+        }
+
         public Factory(string name)
             : base(name, "Factory")
         {
@@ -96,6 +106,10 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
             : base(name, "Repository")
         {
             ClassInfo = classInfo;
+        }
+        public void SetAccessedType(string accessedType)
+        {
+            AccessedType = accessedType;
         }
     }
     public class Aggregate : DomainModelStruct
