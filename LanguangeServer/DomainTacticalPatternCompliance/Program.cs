@@ -460,14 +460,13 @@ namespace DomainTacticalPatternCompliance
 
             DomainModelList domainModelList = new DomainModelList();
 
+            // First pass over the whole project: which types are raised / subscribed / handled as domain events.
+            var eventEvidence = DomainEventTypeCollector.Collect(parser.SyntaxTrees);
+
             foreach(var c in classStructureInfoList.Classes)
             {
-               DomainModelIdentifier.IdentifyDomainModels(c, domainModelList);
+               DomainModelIdentifier.IdentifyDomainModels(c, domainModelList, eventEvidence: eventEvidence);
             }
-
-            DomainModelIdentifier.ResolveDomainModelReferences(domainModelList, parser.Compilation);
-
-            // TODO: make algorithm to identify publisher and subscriber from domain events
 
             var aggregateIdentifier = new AggregateIdentifier(parser.Compilation);
 

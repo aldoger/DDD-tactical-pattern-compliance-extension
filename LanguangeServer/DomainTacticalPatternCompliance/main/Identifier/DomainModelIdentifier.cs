@@ -34,14 +34,15 @@ namespace DomainTacticalPatternCompliance.main.Identifier
         public static void IdentifyDomainModels(
             ClassStructureInfo classStructureInfo,
             DomainModelList domainModelList,
-            ISet<string>? projectTypeNames = null
+            ISet<string>? projectTypeNames = null,
+            IReadOnlyDictionary<string, DomainEventEvidence>? eventEvidence = null
         )
         {
             var cls = ClassMemberContext.From(classStructureInfo.ClassDeclaration);
             foreach (var m in classStructureInfo.Methods) m.Analyze(cls);
             new ClassStereotypeIdentifier().IdentifyStereotype(classStructureInfo);
 
-            var signals = DomainModelSignalExtractor.Extract(classStructureInfo.ClassDeclaration, projectTypeNames);
+            var signals = DomainModelSignalExtractor.Extract(classStructureInfo.ClassDeclaration, projectTypeNames, eventEvidence);
             var decision = Decide(signals, classStructureInfo.Stereotype);
 
             if (decision.Kind is null) return;
@@ -60,6 +61,11 @@ namespace DomainTacticalPatternCompliance.main.Identifier
 
             if (s.ExplicitKind is { } explicitKind)
                 return new Decision(explicitKind, ranked, "explicit attribute");
+
+            // A type that is raised, subscribed, handled, used as a C# event payload or marked as an event
+            // somewhere in the project is a domain event, even if its shape looks like a value object.
+            if (DomainEventTypeCollector.IsStrong(s.EventEvidence))
+                return new Decision(DomainModelKind.DomainEvent, ranked, $"domain event evidence: {s.EventEvidence}");
 
             var best = ranked[0];
             var second = ranked[1];
@@ -114,6 +120,9 @@ namespace DomainTacticalPatternCompliance.main.Identifier
                             if (s.HasStructuralEquality) score += 3;
                             if (s.SelfReturningMethods > 1) score += 3;
                         }
+                        // Event-like names/namespaces are immutable too; keep them from being taken as value objects.
+                        if (s.HasEventName || s.EventEvidence.HasFlag(DomainEventEvidence.EventsNamespace))
+                            score -= 3;
                         return score + (Has(ClassStereotype.DataProvider) || Has(ClassStereotype.DataClass) ? 3 : 0)
                              + (s.HasStructuralEquality ? 3 : 0)
                              + (s.AllStateReadOnly ? 2 : 0)
@@ -162,6 +171,21 @@ namespace DomainTacticalPatternCompliance.main.Identifier
                              + (s.FactoryMethodRatio >= 0.999 ? 3 : s.FactoryMethodRatio >= 0.66 ? 2 : 0)
                              + (s.NameKind == NameKind.Factory ? 2 : 0)
                              + (s.IsStateless ? 1 : 0);
+                    }
+
+                // Domain event: only weak evidence reaches this point (strong evidence is decided in Decide).
+                // Events namespace / IHandleMessages<T> + "Event" name + immutable state + occurrence time.
+                case DomainModelKind.DomainEvent:
+                    {
+                        var weak = DomainEventEvidence.EventsNamespace | DomainEventEvidence.HandledAsMessage;
+                        if ((s.EventEvidence & weak) == 0 && !s.HasEventName) return Veto;
+
+                        return (s.EventEvidence.HasFlag(DomainEventEvidence.EventsNamespace) ? 2 : 0)
+                             + (s.EventEvidence.HasFlag(DomainEventEvidence.HandledAsMessage) ? 2 : 0)
+                             + (s.HasEventName ? 2 : 0)
+                             + (s.AllStateReadOnly ? 1 : 0)
+                             + (s.HasOccurrenceTime ? 1 : 0)
+                             - (s.IsStateless ? 3 : 0);
                     }
 
                 default:
@@ -219,6 +243,12 @@ namespace DomainTacticalPatternCompliance.main.Identifier
                     {
                         Entity newEntity = new Entity(info.ClassName, info);
                         list.AddDomainModel(newEntity);
+                        break;
+                    }
+                case DomainModelKind.DomainEvent:
+                    {
+                        DomainEvent newDomainEvent = new DomainEvent(info.ClassName, info);
+                        list.AddDomainModel(newDomainEvent);
                         break;
                     }
                 case DomainModelKind.ValueObject:

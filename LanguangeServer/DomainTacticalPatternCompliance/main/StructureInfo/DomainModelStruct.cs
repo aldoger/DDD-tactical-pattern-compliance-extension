@@ -63,10 +63,23 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
     public class DomainEvent : DomainModelStruct
     {
         public ClassStructureInfo? ClassInfo;
+        public class Event
+        {
+            public string EventName { get; }
+            public Event(string eventName)
+            {
+                EventName = eventName;
+            }
+        }
+        public List<Event> Events = new List<Event>();
         public DomainEvent(string name, ClassStructureInfo? classInfo)
             : base(name, "Domain Event")
         {
             ClassInfo = classInfo;
+        }
+        public void AddEvent(string eventName)
+        {
+            Events.Add(new Event(eventName));
         }
     }
     public class Factory : DomainModelStruct
@@ -101,9 +114,7 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
     }
     public class Repository : DomainModelStruct
     {
-        // The main domain model this repository persists (e.g. "Human" for HumanRepository).
         public string? AccessedType;
-        // Every entity / value object / aggregate that appears in the repository's method signatures.
         public List<DomainModelStruct> AccessedDomainModels = new List<DomainModelStruct>();
         public ClassStructureInfo? ClassInfo;
         public Repository(string name, ClassStructureInfo classInfo)

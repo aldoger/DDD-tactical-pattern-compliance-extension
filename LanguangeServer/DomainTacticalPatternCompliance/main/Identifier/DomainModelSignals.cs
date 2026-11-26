@@ -11,23 +11,28 @@ namespace DomainTacticalPatternCompliance.main.Identifier
 {
     public enum NameKind { None, Service, Factory, Repository }
 
-    public enum DomainModelKind { Factory, Repository, DomainService, Entity, ValueObject }
+    public enum DomainModelKind { Factory, Repository, DomainService, Entity, ValueObject, DomainEvent }
 
     public sealed record DomainModelSignals(
-        bool HasIdentity,                  // variable member id
-        int StateMemberCount,              // instance fields / auto-properties / record parameters
-        bool AllStateReadOnly,             // >=1 state member and all immutable (get-only/init/readonly, non-collection)
-        bool HasStructuralEquality,        // record, struct, IEquatable<T>, or BOTH Equals and GetHashCode overridden
-        bool IsStateless,                  // no instance state besides injected dependencies
-        int DomainTypesInPublicParams,     // distinct domain types in public method parameters
+        bool HasIdentity,                   // variable member id for entity and domain events
+        int StateMemberCount,               // instance fields / auto-properties / record parameters
+        bool AllStateReadOnly,              // >=1 state member and all immutable (get-only/init/readonly, non-collection)
+        bool HasStructuralEquality,         // record, struct, IEquatable<T>, or BOTH Equals and GetHashCode overridden for value object
+        bool HasEventKeyword,               // type is the payload of a C# `event` (EventHandler<T>, Action<T>, custom delegate)
+        bool HasEventRegisterAndRaiseMethod, // type is raised/published or registered/subscribed somewhere (Udi Dahan static DomainEvents class)
+        DomainEventEvidence EventEvidence,  // all evidence collected project-wide by DomainEventTypeCollector
+        bool HasEventName,                  // class name ends with "Event" (e.g. OrderPlacedEvent)
+        bool HasOccurrenceTime,             // DateTime/DateTimeOffset state member (OccurredOn, Timestamp, ...)
+        bool IsStateless,                   // no instance state besides injected dependencies
+        int DomainTypesInPublicParams,      // distinct domain types in public method parameters
         bool ImplementsRepositoryInterface,
-        int CrudMethodCount,               // public Add/Get/Find/Update/Remove/Delete/List/Save... methods
-        int QueryVerbMethodCount,          // public methods whose name starts with Get/Find/Update
-        double QueryVerbRatio,             // QueryVerbMethodCount / public methods
-        double FactoryMethodRatio,         // public methods returning a new instance of ANOTHER type / public methods
-        int SelfReturningMethods,          // With*-style methods returning a new instance of the own type
+        int CrudMethodCount,                // public Add/Get/Find/Update/Remove/Delete/List/Save... methods
+        int QueryVerbMethodCount,           // public methods whose name starts with Get/Find/Update
+        double QueryVerbRatio,              // QueryVerbMethodCount / public methods
+        double FactoryMethodRatio,          // public methods returning a new instance of ANOTHER type / public methods
+        int SelfReturningMethods,           // With*-style methods returning a new instance of the own type
         NameKind NameKind,
-        DomainModelKind? ExplicitKind      // [ValueObject], [Entity], ... attribute, if any
+        DomainModelKind? ExplicitKind       // [ValueObject], [Entity], ... attribute, if any
     );
 
     public static class DomainModelSignalExtractor
@@ -55,9 +60,18 @@ namespace DomainTacticalPatternCompliance.main.Identifier
             "Decimal", "String", "Int32", "Int64", "Boolean", "Double", "Single", "Byte", "Char"
         };
 
-        public static DomainModelSignals Extract(TypeDeclarationSyntax type, ISet<string>? projectTypeNames = null)
+        private static readonly HashSet<string> TemporalTypes = new(StringComparer.Ordinal)
+        {
+            "DateTime", "DateTimeOffset", "DateOnly"
+        };
+
+        public static DomainModelSignals Extract(
+            TypeDeclarationSyntax type,
+            ISet<string>? projectTypeNames = null,
+            IReadOnlyDictionary<string, DomainEventEvidence>? eventEvidence = null)
         {
             string ownName = type.Identifier.Text;
+            var evidence = DomainEventTypeCollector.EvidenceFor(eventEvidence, ownName);
 
             var state = GetStateMembers(type).ToList();
             var publicMethods = GetPublicMethods(type).ToList();
@@ -99,6 +113,11 @@ namespace DomainTacticalPatternCompliance.main.Identifier
                 StateMemberCount: state.Count,
                 AllStateReadOnly: allReadOnly,
                 HasStructuralEquality: HasStructuralEquality(type),
+                HasEventKeyword: evidence.HasFlag(DomainEventEvidence.NativeEvent),
+                HasEventRegisterAndRaiseMethod: (evidence & (DomainEventEvidence.Raised | DomainEventEvidence.Subscribed)) != 0,
+                EventEvidence: evidence,
+                HasEventName: ownName.EndsWith("Event", StringComparison.Ordinal) && ownName != "Event",
+                HasOccurrenceTime: state.Any(s => TemporalTypes.Contains(s.TypeName)),
                 IsStateless: stateless,
                 DomainTypesInPublicParams: domainTypes,
                 ImplementsRepositoryInterface: repoInterface,
@@ -324,6 +343,7 @@ namespace DomainTacticalPatternCompliance.main.Identifier
                     case "DomainService": return DomainModelKind.DomainService;
                     case "Factory": return DomainModelKind.Factory;
                     case "Repository": return DomainModelKind.Repository;
+                    case "DomainEvent": return DomainModelKind.DomainEvent;
                 }
             }
             return null;
@@ -372,4 +392,4 @@ namespace DomainTacticalPatternCompliance.main.Identifier
             }
         }
     }
-}
+}
