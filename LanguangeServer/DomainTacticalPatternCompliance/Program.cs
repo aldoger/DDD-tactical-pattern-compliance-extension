@@ -318,6 +318,7 @@ namespace DomainTacticalPatternCompliance
  
                 public class ResidenceFactory
                 {
+                    
                     public Residence Create(string street, string city, string province,
                                             string postalCode, string country, int capacity)
                     {
@@ -460,12 +461,12 @@ namespace DomainTacticalPatternCompliance
 
             DomainModelList domainModelList = new DomainModelList();
 
-            // First pass over the whole project: which types are raised / subscribed / handled as domain events.
-            var eventEvidence = DomainEventTypeCollector.Collect(parser.SyntaxTrees);
+            // Pass 1: once for the whole project. DomainEventInfo = evidence + publishers + subscribers (C9).
+            var domainEvents = DomainEventTypeCollector.CollectDetailed(parser.SyntaxTrees);
 
-            foreach(var c in classStructureInfoList.Classes)
+            foreach (var c in classStructureInfoList.Classes)
             {
-               DomainModelIdentifier.IdentifyDomainModels(c, domainModelList, eventEvidence: eventEvidence);
+                DomainModelIdentifier.IdentifyDomainModels(c, domainModelList, domainEvents: domainEvents);
             }
 
             var aggregateIdentifier = new AggregateIdentifier(parser.Compilation);

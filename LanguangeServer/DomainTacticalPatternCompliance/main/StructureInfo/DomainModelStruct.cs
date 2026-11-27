@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DomainTacticalPatternCompliance.main.Identifier;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -63,24 +64,35 @@ namespace DomainTacticalPatternCompliance.main.StructureInfo
     public class DomainEvent : DomainModelStruct
     {
         public ClassStructureInfo? ClassInfo;
-        public class Event
-        {
-            public string EventName { get; }
-            public Event(string eventName)
-            {
-                EventName = eventName;
-            }
-        }
-        public List<Event> Events = new List<Event>();
+
+        public List<EventParticipant> Publishers { get; } = new();
+        public List<EventParticipant> Subscribers { get; } = new();
+
+        public string? Publisher => JoinNames(Publishers);
+
+        public string? Subscriber => JoinNames(Subscribers);
+
+        public bool HasPublisher => Publishers.Count > 0;
+        public bool HasSubscriber => Subscribers.Count > 0;
+
         public DomainEvent(string name, ClassStructureInfo? classInfo)
             : base(name, "Domain Event")
         {
             ClassInfo = classInfo;
         }
-        public void AddEvent(string eventName)
+
+        public void AddPublisher(EventParticipant publisher)
         {
-            Events.Add(new Event(eventName));
+            if (!Publishers.Contains(publisher)) Publishers.Add(publisher);
         }
+
+        public void AddSubscriber(EventParticipant subscriber)
+        {
+            if (!Subscribers.Contains(subscriber)) Subscribers.Add(subscriber);
+        }
+
+        private static string? JoinNames(List<EventParticipant> participants) =>
+            participants.Count == 0 ? null : string.Join(", ", participants.Select(p => p.TypeName).Distinct());
     }
     public class Factory : DomainModelStruct
     {

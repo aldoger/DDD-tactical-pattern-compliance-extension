@@ -34,20 +34,19 @@ namespace DomainTacticalPatternCompliance.main.Identifier
         public static void IdentifyDomainModels(
             ClassStructureInfo classStructureInfo,
             DomainModelList domainModelList,
-            ISet<string>? projectTypeNames = null,
-            IReadOnlyDictionary<string, DomainEventEvidence>? eventEvidence = null
+            IReadOnlyDictionary<string, DomainEventInfo>? domainEvents = null   // from DomainEventTypeCollector.CollectDetailed
         )
         {
             var cls = ClassMemberContext.From(classStructureInfo.ClassDeclaration);
             foreach (var m in classStructureInfo.Methods) m.Analyze(cls);
             new ClassStereotypeIdentifier().IdentifyStereotype(classStructureInfo);
 
-            var signals = DomainModelSignalExtractor.Extract(classStructureInfo.ClassDeclaration, projectTypeNames, eventEvidence);
+            var signals = DomainModelSignalExtractor.Extract(classStructureInfo.ClassDeclaration, domainEvents);
             var decision = Decide(signals, classStructureInfo.Stereotype);
 
             if (decision.Kind is null) return;
 
-            Register(decision.Kind.Value, classStructureInfo, domainModelList);
+            Register(decision.Kind.Value, classStructureInfo, domainModelList, domainEvents);
         }
 
         // ------------------------------------------------------------ decision
@@ -62,8 +61,6 @@ namespace DomainTacticalPatternCompliance.main.Identifier
             if (s.ExplicitKind is { } explicitKind)
                 return new Decision(explicitKind, ranked, "explicit attribute");
 
-            // A type that is raised, subscribed, handled, used as a C# event payload or marked as an event
-            // somewhere in the project is a domain event, even if its shape looks like a value object.
             if (DomainEventTypeCollector.IsStrong(s.EventEvidence))
                 return new Decision(DomainModelKind.DomainEvent, ranked, $"domain event evidence: {s.EventEvidence}");
 
@@ -209,7 +206,8 @@ namespace DomainTacticalPatternCompliance.main.Identifier
 
         // ------------------------------------------------------------ registration
 
-        private static void Register(DomainModelKind kind, ClassStructureInfo info, DomainModelList list)
+        private static void Register(DomainModelKind kind, ClassStructureInfo info, DomainModelList list,
+                                     IReadOnlyDictionary<string, DomainEventInfo>? domainEvents)
         {
             switch (kind)
             {
@@ -248,6 +246,15 @@ namespace DomainTacticalPatternCompliance.main.Identifier
                 case DomainModelKind.DomainEvent:
                     {
                         DomainEvent newDomainEvent = new DomainEvent(info.ClassName, info);
+
+                        // Publishers and subscribers found project-wide by DomainEventTypeCollector (needed for C9).
+                        string typeName = info.ClassDeclaration.Identifier.Text;
+                        if (DomainEventTypeCollector.InfoFor(domainEvents, typeName) is { } found)
+                        {
+                            foreach (var publisher in found.Publishers) newDomainEvent.AddPublisher(publisher);
+                            foreach (var subscriber in found.Subscribers) newDomainEvent.AddSubscriber(subscriber);
+                        }
+
                         list.AddDomainModel(newDomainEvent);
                         break;
                     }

@@ -52,7 +52,7 @@ namespace DomainTacticalPatternCompliance.main.Identifier
             "ObservableCollection"
         };
 
-        // Only used when no project type list is supplied.
+        // Parameter types that never count as domain types (see LooksLikeDomainType).
         private static readonly HashSet<string> NonDomainTypes = new(StringComparer.Ordinal)
         {
             "Guid", "DateTime", "DateTimeOffset", "TimeSpan", "DateOnly", "TimeOnly",
@@ -67,11 +67,10 @@ namespace DomainTacticalPatternCompliance.main.Identifier
 
         public static DomainModelSignals Extract(
             TypeDeclarationSyntax type,
-            ISet<string>? projectTypeNames = null,
-            IReadOnlyDictionary<string, DomainEventEvidence>? eventEvidence = null)
+            IReadOnlyDictionary<string, DomainEventInfo>? domainEvents = null)
         {
             string ownName = type.Identifier.Text;
-            var evidence = DomainEventTypeCollector.EvidenceFor(eventEvidence, ownName);
+            var evidence = DomainEventTypeCollector.EvidenceFor(domainEvents, ownName);
 
             var state = GetStateMembers(type).ToList();
             var publicMethods = GetPublicMethods(type).ToList();
@@ -84,7 +83,7 @@ namespace DomainTacticalPatternCompliance.main.Identifier
                 .Where(p => p.Type != null)
                 .SelectMany(p => TypeNamesIn(p.Type!))
                 .Where(n => n != ownName)
-                .Where(n => projectTypeNames != null ? projectTypeNames.Contains(n) : LooksLikeDomainType(n))
+                .Where(LooksLikeDomainType)
                 .Distinct()
                 .Count();
 
@@ -116,7 +115,7 @@ namespace DomainTacticalPatternCompliance.main.Identifier
                 HasEventKeyword: evidence.HasFlag(DomainEventEvidence.NativeEvent),
                 HasEventRegisterAndRaiseMethod: (evidence & (DomainEventEvidence.Raised | DomainEventEvidence.Subscribed)) != 0,
                 EventEvidence: evidence,
-                HasEventName: ownName.EndsWith("Event", StringComparison.Ordinal) && ownName != "Event",
+                HasEventName: DomainEventTypeCollector.HasEventName(ownName),
                 HasOccurrenceTime: state.Any(s => TemporalTypes.Contains(s.TypeName)),
                 IsStateless: stateless,
                 DomainTypesInPublicParams: domainTypes,
@@ -208,6 +207,7 @@ namespace DomainTacticalPatternCompliance.main.Identifier
                     yield return new StateMember(v.Identifier.Text, tn, !readOnly || collection, injected);
             }
         }
+
 
         private static bool IsMutableCollection(TypeSyntax t) =>
             t is ArrayTypeSyntax || MutableCollections.Contains(TypeName(t));
@@ -392,4 +392,4 @@ namespace DomainTacticalPatternCompliance.main.Identifier
             }
         }
     }
-}
+}
